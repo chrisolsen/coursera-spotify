@@ -9,7 +9,7 @@ public class ArtistSearchActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_artist_search);
+        setContentView(R.layout.artist_search_activity);
     }
 
 

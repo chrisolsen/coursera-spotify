@@ -44,7 +44,7 @@ public class ArtistSearchActivityFragment extends Fragment {
 
         SpotifyApi api = new SpotifyApi();
         final Context context = getActivity();
-        View layout = inflater.inflate(R.layout.fragment_artist_search, container, false);
+        View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
         final SpotifyService spotify = api.getService();
         final ListView listView = (ListView)layout.findViewById(android.R.id.list);
 

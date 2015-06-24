@@ -10,7 +10,7 @@ public class ArtistTopSongsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_artist_top_songs);
+        setContentView(R.layout.artist_top_songs_activity);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 

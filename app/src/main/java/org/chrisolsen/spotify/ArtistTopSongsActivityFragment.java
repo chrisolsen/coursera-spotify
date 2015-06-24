@@ -44,7 +44,7 @@ public class ArtistTopSongsActivityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_artist_top_songs, container, false);
+        View view = inflater.inflate(R.layout.artist_top_songs_fragment, container, false);
 
         // perform api request
         String artistId = getActivity().getIntent().getStringExtra("artistId");
@@ -66,7 +66,7 @@ public class ArtistTopSongsActivityFragment extends Fragment {
     private void bindList(List<Track> tracks) {
         View parent = getView();
         ListView listView = (ListView)parent.findViewById(android.R.id.list);
-        TopTenAdapter adapter = new TopTenAdapter(getActivity(), R.layout.fragment_artist_top_songs, tracks);
+        TopTenAdapter adapter = new TopTenAdapter(getActivity(), R.layout.artist_top_songs_fragment, tracks);
         listView.setAdapter(adapter);
     }
 
@@ -84,7 +84,7 @@ public class ArtistTopSongsActivityFragment extends Fragment {
 
             View view = convertView;
             if (view == null) {
-                view = LayoutInflater.from(getContext()).inflate(R.layout.listitem_top_songs, parent, false);
+                view = LayoutInflater.from(getContext()).inflate(R.layout.artist_top_songs_listitem, parent, false);
             }
 
             Track track = getItem(position);
