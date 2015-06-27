@@ -83,8 +83,8 @@ public class ArtistSearchActivityFragment extends Fragment {
 
         Activity a = getActivity();
         ListView listView = (ListView)a.findViewById(android.R.id.list);
-        TextView noResults = (TextView)a.findViewById(android.R.id.empty);
-        TextView instructions = (TextView)a.findViewById(R.id.artists_search_instructions);
+        View noResults = a.findViewById(android.R.id.empty);
+        View instructions = a.findViewById(R.id.artists_search_instructions);
         TextView filter = (TextView)a.findViewById(R.id.filter);
 
         boolean hasResults = items.size() > 0;

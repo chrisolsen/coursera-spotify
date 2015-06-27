@@ -52,7 +52,6 @@
         android:layout_gravity="center_vertical"
         android:orientation="vertical"
         android:visibility="gone"
-        android:layout_marginTop="-60dp"
         android:gravity="center">
 
         <ImageView

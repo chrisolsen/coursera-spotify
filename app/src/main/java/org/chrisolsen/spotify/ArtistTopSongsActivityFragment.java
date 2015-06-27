@@ -65,7 +65,11 @@ public class ArtistTopSongsActivityFragment extends Fragment {
 
     private void bindList(List<Track> tracks) {
         View parent = getView();
+        View noResults = parent.findViewById(android.R.id.empty);
         ListView listView = (ListView)parent.findViewById(android.R.id.list);
+
+        noResults.setVisibility(tracks.size() > 0 ? View.GONE : View.VISIBLE);
+
         TopTenAdapter adapter = new TopTenAdapter(getActivity(), R.layout.artist_top_songs_fragment, tracks);
         listView.setAdapter(adapter);
     }
