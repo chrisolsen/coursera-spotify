@@ -1,6 +1,7 @@
 package org.chrisolsen.spotify;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -12,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -47,15 +49,25 @@ public class ArtistTopSongsActivityFragment extends Fragment {
         View view = inflater.inflate(R.layout.artist_top_songs_fragment, container, false);
 
         // perform api request
-        String artistId = getActivity().getIntent().getStringExtra("artistId");
-        String artistName = getActivity().getIntent().getStringExtra("artistName");
+        Intent intent = getActivity().getIntent();
+        String artistId = intent.getStringExtra("artistId");
+        String artistName = intent.getStringExtra("artistName");
+        Bundle imageBundle = (Bundle)intent.getBundleExtra("artistImage");
+        String imageUrl = imageBundle.getString("url");
+
+        ImageView bgImage = (ImageView) view.findViewById(R.id.artist_image);
+        TextView artistNameView = (TextView) view.findViewById(R.id.artist_name);
+        artistNameView.setText(artistName);
+
+        Picasso.with(getActivity()).load(imageUrl).into(bgImage);
 
         try {
             AppCompatActivity a = (AppCompatActivity)getActivity();
             a.getSupportActionBar().setTitle(R.string.title_activity_artist_top_songs);
             a.getSupportActionBar().setSubtitle(artistName);
         } catch(NullPointerException ignored) {
-
+            Toast.makeText(this.getActivity(), "An error occurred", Toast.LENGTH_SHORT).show();
+            return null;
         }
 
         new TopSongRequestTask().execute(artistId);

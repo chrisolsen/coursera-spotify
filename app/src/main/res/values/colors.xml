@@ -4,4 +4,5 @@
     <color name="color_primary_dark">#0288D1</color>
     <color name="color_accent">#80D8FF</color>
     <color name="color_list_divider">#AAAAAA</color>
+    <color name="color_text_dark">#333333</color>
 </resources>

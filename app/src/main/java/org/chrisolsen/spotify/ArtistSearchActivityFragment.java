@@ -28,6 +28,7 @@ import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Image;
 
 
 /**
@@ -56,6 +57,13 @@ public class ArtistSearchActivityFragment extends Fragment {
                 Intent intent = new Intent(context, ArtistTopSongsActivity.class);
                 intent.putExtra("artistId", a.id);
                 intent.putExtra("artistName", a.name);
+
+                Bundle imageBundle = new Bundle();
+                Image image = a.images.get(0);
+                imageBundle.putString("url", image.url);
+                imageBundle.putInt("width", image.width);
+                imageBundle.putInt("height", image.height);
+                intent.putExtra("artistImage", imageBundle);
                 startActivity(intent);
             }
         });
