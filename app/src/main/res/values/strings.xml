@@ -5,4 +5,5 @@
     <string name="artists_search_instructions">Search for artists by name</string>
     <string name="title_activity_artist_top_songs">Top 10 Tracks</string>
     <string name="top_ten_no_results">No Top 10 Songs Found</string>
+    <string name="search">Search</string>
 </resources>

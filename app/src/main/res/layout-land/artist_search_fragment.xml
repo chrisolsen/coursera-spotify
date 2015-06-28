@@ -30,7 +30,7 @@
         android:gravity="center">
 
         <ImageView
-            android:src="@mipmap/ic_search"
+            android:src="@mipmap/ic_search_dark"
             android:layout_width="104dp"
             android:layout_height="104dp"
             android:layout_gravity="center_horizontal"
