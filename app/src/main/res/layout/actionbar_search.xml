@@ -10,6 +10,7 @@
         android:textSize="@dimen/font_size_medium"
         android:hint="Artist Search"
         android:focusable="true"
+        android:singleLine="true"
         android:background="@android:color/transparent" />
 
     <ImageButton

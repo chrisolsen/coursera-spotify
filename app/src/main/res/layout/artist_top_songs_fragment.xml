@@ -30,6 +30,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="5dp"
                 android:textColor="#eeeeee"
+                android:shadowColor="#000000"
+                android:shadowRadius="2"
                 tools:text="Foo Fighters"
                 android:gravity="center_horizontal"
                 android:textSize="@dimen/font_size_medium" />
@@ -39,6 +41,8 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/font_size_small"
                 android:gravity="center_horizontal"
+                android:shadowColor="#000000"
+                android:shadowRadius="2"
                 android:textColor="#eeeeee"
                 android:text="@string/title_activity_artist_top_songs"/>
 

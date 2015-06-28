@@ -6,11 +6,21 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -33,6 +43,9 @@ import kaaes.spotify.webapi.android.models.Image;
  */
 public class ArtistSearchActivityFragment extends Fragment {
 
+    Menu _menu;
+    EditText filter;
+
     public ArtistSearchActivityFragment() {
     }
 
@@ -40,17 +53,15 @@ public class ArtistSearchActivityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        SpotifyApi api = new SpotifyApi();
         final Context context = getActivity();
         View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
-        final SpotifyService spotify = api.getService();
         final ListView listView = (ListView)layout.findViewById(android.R.id.list);
-
+        
         // ListView select event
         listView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Artist a = (Artist)listView.getAdapter().getItem(position);
+                Artist a = (Artist) listView.getAdapter().getItem(position);
                 Intent intent = new Intent(context, ArtistTopSongsActivity.class);
                 intent.putExtra("artistId", a.id);
                 intent.putExtra("artistName", a.name);
@@ -61,11 +72,98 @@ public class ArtistSearchActivityFragment extends Fragment {
                 imageBundle.putInt("width", image.width);
                 imageBundle.putInt("height", image.height);
                 intent.putExtra("artistImage", imageBundle);
+
                 startActivity(intent);
             }
         });
 
+        // required within a fragment
+        setHasOptionsMenu(true);
+
         return layout;
+    }
+
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        _menu = menu;
+        inflater.inflate(R.menu.menu_artist_search, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+        switch(item.getItemId()) {
+            case R.id.action_settings:
+                return true;
+            case R.id.action_artist_search:
+                bindSearchActionBar();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void bindSearchActionBar() {
+        final ActionBar actionBar = ((ActionBarActivity)getActivity()).getSupportActionBar();
+        actionBar.setCustomView(R.layout.actionbar_search);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME);
+
+        // hide all the existing menu items
+        for (int i = 0; i < _menu.size(); i++) {
+            MenuItem item = _menu.getItem(i);
+            item.setVisible(false);
+        }
+
+        View bar = actionBar.getCustomView();
+        ImageButton cancel = (ImageButton) bar.findViewById(R.id.action_artist_search_cancel);
+        filter = (EditText) bar.findViewById(R.id.action_artist_search_filter);
+        SpotifyApi api = new SpotifyApi();
+        final SpotifyService spotify = api.getService();
+
+        // focus and show keyboard
+        final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        filter.requestFocus();
+        imm.showSoftInput(filter, InputMethodManager.SHOW_IMPLICIT);
+
+        filter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String searchBy = String.valueOf(s);
+                new SearchTask(spotify).execute(searchBy);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                filter.setText("");
+
+                // hide the keyboard
+                actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
+                imm.hideSoftInputFromWindow(filter.getWindowToken(), 0);
+
+                // re-show the menuitems
+                for (int i = 0; i < _menu.size(); i++) {
+                    MenuItem item = _menu.getItem(i);
+                    item.setVisible(true);
+                }
+            }
+        });
     }
 
     private void bindList(List<Artist> items) {
@@ -74,7 +172,6 @@ public class ArtistSearchActivityFragment extends Fragment {
         ListView listView = (ListView)a.findViewById(android.R.id.list);
         View noResults = a.findViewById(android.R.id.empty);
         View instructions = a.findViewById(R.id.artists_search_instructions);
-        TextView filter = (TextView)a.findViewById(R.id.filter);
 
         boolean hasResults = items.size() > 0;
         boolean hasFilter = filter.getText().length() > 0;
