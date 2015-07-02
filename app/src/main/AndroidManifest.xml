@@ -28,6 +28,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ArtistSearchActivity" />
         </activity>
+
+        <provider
+            android:name=".ArtistsProvider"
+            android:authorities="org.chrisolsen.spotify"
+            android:enabled="true"
+            android:exported="false" >
+        </provider>
     </application>
 
 </manifest>

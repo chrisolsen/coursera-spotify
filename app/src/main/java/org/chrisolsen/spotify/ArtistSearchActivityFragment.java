@@ -1,8 +1,11 @@
 package org.chrisolsen.spotify;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -35,7 +38,7 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
-
+import retrofit.http.HEAD;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -54,7 +57,7 @@ public class ArtistSearchActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         final Context context = getActivity();
-        View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
+        final View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
         final ListView listView = (ListView)layout.findViewById(android.R.id.list);
 
         mSpotifyApi = new SpotifyApi().getService();
@@ -83,6 +86,21 @@ public class ArtistSearchActivityFragment extends Fragment {
         setHasOptionsMenu(true);
 
         bindSearch(layout);
+//        View noResults = a.findViewById(android.R.id.empty);
+//        View instructions = a.findViewById(R.id.artists_search_instructions);
+//
+//        boolean hasResults = items.size() > 0;
+//        boolean hasFilter = filter.getText().length() > 0;
+//
+//        instructions.setVisibility(!hasResults && !hasFilter ? View.VISIBLE : View.GONE);
+//        noResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
+//        listView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
+
+        Uri uri = ArtistsContract.ArtistEntry.CONTENT_URI;
+        Cursor c = context.getContentResolver().query(uri, null, null, null, null);
+
+        ArtistsCursorAdapter adapter = new ArtistsCursorAdapter(context, c, 0);
+        listView.setAdapter(adapter);
 
         return layout;
     }
@@ -172,80 +190,80 @@ public class ArtistSearchActivityFragment extends Fragment {
         });
     }
 
-    private void bindList(List<Artist> items) {
+    // private void bindList(List<Artist> items) {
 
-        if (!isAdded()) {
-            return;
-        }
+    //     if (!isAdded()) {
+    //         return;
+    //     }
 
-        Activity a = getActivity();
-        ListView listView = (ListView)a.findViewById(android.R.id.list);
-        View noResults = a.findViewById(android.R.id.empty);
-        View instructions = a.findViewById(R.id.artists_search_instructions);
+    //     Activity a = getActivity();
+    //     ListView listView = (ListView)a.findViewById(android.R.id.list);
+    //     View noResults = a.findViewById(android.R.id.empty);
+    //     View instructions = a.findViewById(R.id.artists_search_instructions);
 
-        boolean hasResults = items.size() > 0;
-        boolean hasFilter = mSearchFilter != null && mSearchFilter.length() > 0;
+    //     boolean hasResults = items.size() > 0;
+    //     boolean hasFilter = mSearchFilter != null && mSearchFilter.length() > 0;
 
-        instructions.setVisibility(!hasResults && !hasFilter ? View.VISIBLE : View.GONE);
-        noResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
-        listView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
+    //     instructions.setVisibility(!hasResults && !hasFilter ? View.VISIBLE : View.GONE);
+    //     noResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
+    //     listView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
 
-        ArtistAdapter adapter = new ArtistAdapter(a, android.R.id.list, items);
-        listView.setAdapter(adapter);
-    }
+    //     ArtistAdapter adapter = new ArtistAdapter(a, android.R.id.list, items);
+    //     listView.setAdapter(adapter);
+    // }
 
-    private class ArtistAdapter extends ArrayAdapter<Artist> {
-        List<Artist> artists;
+    // private class ArtistAdapter extends ArrayAdapter<Artist> {
+    //     List<Artist> artists;
 
-        public ArtistAdapter(Context context, int resource, List<Artist> objects) {
-            super(context, resource, objects);
-            artists = objects;
-        }
+    //     public ArtistAdapter(Context context, int resource, List<Artist> objects) {
+    //         super(context, resource, objects);
+    //         artists = objects;
+    //     }
 
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View v = convertView;
-            TextView t;
-            ImageView image;
-            String imageUrl;
+    //     @Override
+    //     public View getView(int position, View convertView, ViewGroup parent) {
+    //         View v = convertView;
+    //         TextView t;
+    //         ImageView image;
+    //         String imageUrl;
 
-            if (v == null) {
-                v = LayoutInflater
-                        .from(parent.getContext())
-                        .inflate(R.layout.artist_search_listitem, parent, false);
-            }
+    //         if (v == null) {
+    //             v = LayoutInflater
+    //                     .from(parent.getContext())
+    //                     .inflate(R.layout.artist_search_listitem, parent, false);
+    //         }
 
-            Artist a = artists.get(position);
-            // name
-            t = (TextView)v.findViewById(R.id.artist_name);
-            t.setText(a.name);
+    //         Artist a = artists.get(position);
+    //         // name
+    //         t = (TextView)v.findViewById(R.id.artist_name);
+    //         t.setText(a.name);
 
-            // image
-            // the middle image is the one we want, but will settle for the smallest
-            image = (ImageView)v.findViewById(R.id.artist_image);
-            if (a.images.size() >= 2) {
-                imageUrl = a.images.get(1).url; // 200px
-            } else if (a.images.size() == 1) {
-                imageUrl = a.images.get(0).url; // 64px
-            } else {
-                imageUrl = null;
-            }
+    //         // image
+    //         // the middle image is the one we want, but will settle for the smallest
+    //         image = (ImageView)v.findViewById(R.id.artist_image);
+    //         if (a.images.size() >= 2) {
+    //             imageUrl = a.images.get(1).url; // 200px
+    //         } else if (a.images.size() == 1) {
+    //             imageUrl = a.images.get(0).url; // 64px
+    //         } else {
+    //             imageUrl = null;
+    //         }
 
-            Picasso p = Picasso.with(getContext());
-            RequestCreator rc;
+    //         Picasso p = Picasso.with(getContext());
+    //         RequestCreator rc;
 
-            if (imageUrl == null || imageUrl.length() == 0) {
-                rc = p.load(R.mipmap.no_photo);
-            } else {
-                rc = p.load(imageUrl);
-            }
+    //         if (imageUrl == null || imageUrl.length() == 0) {
+    //             rc = p.load(R.mipmap.no_photo);
+    //         } else {
+    //             rc = p.load(imageUrl);
+    //         }
 
-            //rc.noFade(); // required for the circular image view plugin
-            rc.into(image);
+    //         //rc.noFade(); // required for the circular image view plugin
+    //         rc.into(image);
 
-            return v;
-        }
-    }
+    //         return v;
+    //     }
+    // }
 
     private class SearchTask extends AsyncTask<String, Void, ArtistsPager> {
         SpotifyService spotify;
@@ -266,11 +284,43 @@ public class ArtistSearchActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(ArtistsPager query) {
+            List<Artist> artists;
+
             if (query == null) {
-                bindList(new ArrayList<Artist>());
-                return;
+                artists = new ArrayList<>();
+            } else {
+                artists = query.artists.items;
             }
-            bindList(query.artists.items);
+
+            Log.d("AsyncTask", "Result count: " + artists.size());
+
+            // convert the artists to ContentValues[]
+            ContentValues[] searchResults = new ContentValues[artists.size()];
+            int i = 0;
+            for (Artist a : artists) {
+                ContentValues vals = new ContentValues();
+
+                vals.put(ArtistsContract.ArtistEntry._ID, a.id);
+                vals.put(ArtistsContract.ArtistEntry.COLUMN_NAME, a.name);
+
+                String imageUrl;
+                if (a.images.size() >= 2) {
+                    imageUrl = a.images.get(1).url; // 200px
+                } else if (a.images.size() == 1) {
+                    imageUrl = a.images.get(0).url; // 64px
+                } else {
+                    imageUrl = null;
+                }
+                vals.put(ArtistsContract.ArtistEntry.COLUMN_NAME, imageUrl);
+
+                searchResults[i] = vals;
+                i++;
+            }
+
+            Log.d("AsyncTask", searchResults.toString());
+
+            Uri uri = ArtistsContract.ArtistEntry.CONTENT_URI;
+            getActivity().getContentResolver().bulkInsert(uri, searchResults);
         }
     }
 }
