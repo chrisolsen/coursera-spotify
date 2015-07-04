@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -42,7 +43,8 @@ import kaaes.spotify.webapi.android.models.Image;
 public class ArtistSearchActivityFragment extends Fragment {
 
     Menu _menu;
-    EditText filter;
+    String mSearchFilter;
+    private SpotifyService mSpotifyApi;
 
     public ArtistSearchActivityFragment() {
     }
@@ -54,6 +56,8 @@ public class ArtistSearchActivityFragment extends Fragment {
         final Context context = getActivity();
         View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
         final ListView listView = (ListView)layout.findViewById(android.R.id.list);
+
+        mSpotifyApi = new SpotifyApi().getService();
         
         // ListView select event
         listView.setOnItemClickListener(new ListView.OnItemClickListener() {
@@ -83,6 +87,38 @@ public class ArtistSearchActivityFragment extends Fragment {
         return layout;
     }
 
+    /**
+     * Called when all saved state has been restored into the view hierarchy
+     * of the fragment.  This can be used to do initialization based on saved
+     * state that you are letting the view hierarchy track itself, such as
+     * whether check box widgets are currently checked.  This is called
+     * after {@link #onActivityCreated(Bundle)} and before
+     * {@link #onStart()}.
+     *
+     * @param savedInstanceState If the fragment is being re-created from
+     *                           a previous saved state, this is the state.
+     */
+    @Override
+    public void onViewStateRestored(Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+
+        if (savedInstanceState == null) return;
+
+        String filter = savedInstanceState.getString("filter");
+        if (filter != null) {
+            new SearchTask(mSpotifyApi).execute(filter);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+
+        Log.d("DA FILTER", mSearchFilter == null ? "empty" : mSearchFilter);
+        outState.putString("filter", mSearchFilter);
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -106,20 +142,18 @@ public class ArtistSearchActivityFragment extends Fragment {
 
     private void bindSearch(View parent) {
 
-        SpotifyApi api = new SpotifyApi();
-        final SpotifyService spotify = api.getService();
-
         final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        final EditText filter = (EditText) parent.findViewById(R.id.artists_search_filter);
+        final ImageButton cancel = (ImageButton) parent.findViewById(R.id.artist_search_cancel);
 
-        ImageButton cancel = (ImageButton) parent.findViewById(R.id.artist_search_cancel);
-
-        filter = (EditText) parent.findViewById(R.id.artists_search_filter);
         filter.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                mSearchFilter = null;  // only save the filter after clicking the search button
+
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    String searchBy = String.valueOf(v.getText());
-                    new SearchTask(spotify).execute(searchBy);
+                    mSearchFilter = String.valueOf(v.getText());
+                    new SearchTask(mSpotifyApi).execute(mSearchFilter);
                     imm.hideSoftInputFromWindow(filter.getWindowToken(), 0);
                     return true;
                 }
@@ -150,7 +184,7 @@ public class ArtistSearchActivityFragment extends Fragment {
         View instructions = a.findViewById(R.id.artists_search_instructions);
 
         boolean hasResults = items.size() > 0;
-        boolean hasFilter = filter.getText().length() > 0;
+        boolean hasFilter = mSearchFilter != null && mSearchFilter.length() > 0;
 
         instructions.setVisibility(!hasResults && !hasFilter ? View.VISIBLE : View.GONE);
         noResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
