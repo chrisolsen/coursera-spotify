@@ -11,19 +11,19 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name=".ArtistSearchActivity"
-            android:launchMode="singleTop"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity
             android:name=".ArtistTopSongsActivity"
-            android:theme="@style/AppTheme.TransparentActionBar"
-            android:parentActivityName=".ArtistSearchActivity">
-
+            android:parentActivityName=".ArtistSearchActivity"
+            android:theme="@style/AppTheme.TransparentActionBar" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ArtistSearchActivity" />

@@ -6,16 +6,14 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -80,15 +78,16 @@ public class ArtistSearchActivityFragment extends Fragment {
         // required within a fragment
         setHasOptionsMenu(true);
 
+        bindSearch(layout);
+
         return layout;
     }
 
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
         _menu = menu;
         inflater.inflate(R.menu.menu_artist_search, menu);
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
@@ -100,51 +99,31 @@ public class ArtistSearchActivityFragment extends Fragment {
         switch(item.getItemId()) {
             case R.id.action_settings:
                 return true;
-            case R.id.action_artist_search:
-                bindSearchActionBar();
-                return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void bindSearchActionBar() {
-        final ActionBar actionBar = ((ActionBarActivity)getActivity()).getSupportActionBar();
-        actionBar.setCustomView(R.layout.actionbar_search);
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME);
+    private void bindSearch(View parent) {
 
-        // hide all the existing menu items
-        for (int i = 0; i < _menu.size(); i++) {
-            MenuItem item = _menu.getItem(i);
-            item.setVisible(false);
-        }
-
-        View bar = actionBar.getCustomView();
-        ImageButton cancel = (ImageButton) bar.findViewById(R.id.action_artist_search_cancel);
-        filter = (EditText) bar.findViewById(R.id.action_artist_search_filter);
         SpotifyApi api = new SpotifyApi();
         final SpotifyService spotify = api.getService();
 
-        // focus and show keyboard
         final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        filter.requestFocus();
-        imm.showSoftInput(filter, InputMethodManager.SHOW_IMPLICIT);
 
-        filter.addTextChangedListener(new TextWatcher() {
+        ImageButton cancel = (ImageButton) parent.findViewById(R.id.artist_search_cancel);
+
+        filter = (EditText) parent.findViewById(R.id.artists_search_filter);
+        filter.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String searchBy = String.valueOf(s);
-                new SearchTask(spotify).execute(searchBy);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    String searchBy = String.valueOf(v.getText());
+                    new SearchTask(spotify).execute(searchBy);
+                    imm.hideSoftInputFromWindow(filter.getWindowToken(), 0);
+                    return true;
+                }
+                return false;
             }
         });
 
@@ -154,19 +133,16 @@ public class ArtistSearchActivityFragment extends Fragment {
                 filter.setText("");
 
                 // hide the keyboard
-                actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
                 imm.hideSoftInputFromWindow(filter.getWindowToken(), 0);
-
-                // re-show the menuitems
-                for (int i = 0; i < _menu.size(); i++) {
-                    MenuItem item = _menu.getItem(i);
-                    item.setVisible(true);
-                }
             }
         });
     }
 
     private void bindList(List<Artist> items) {
+
+        if (!isAdded()) {
+            return;
+        }
 
         Activity a = getActivity();
         ListView listView = (ListView)a.findViewById(android.R.id.list);

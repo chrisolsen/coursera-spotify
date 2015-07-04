@@ -4,12 +4,6 @@
     tools:context=".ArtistSearchActivity">
 
     <item
-        android:id="@+id/action_artist_search"
-        android:icon="@drawable/ic_search"
-        android:title="@string/search"
-        app:showAsAction="always" />
-
-    <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"

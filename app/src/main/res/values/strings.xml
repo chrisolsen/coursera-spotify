@@ -6,4 +6,7 @@
     <string name="title_activity_artist_top_songs">Top 10 Tracks</string>
     <string name="top_ten_no_results">No Top 10 Songs Found</string>
     <string name="search">Search</string>
+    <string name="artists_search_title">Search by artist name</string>
+    <string name="title_activity_artists_search_results">ArtistsSearchResults</string>
+    <string name="hello_world">Hello world!</string>
 </resources>
