@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,10 +51,11 @@ public class ArtistTopSongsActivityFragment extends Fragment {
 
         // perform api request
         Intent intent = getActivity().getIntent();
-        String artistId = intent.getStringExtra("artistId");
-        String artistName = intent.getStringExtra("artistName");
-        Bundle imageBundle = (Bundle)intent.getBundleExtra("artistImage");
-        String imageUrl = imageBundle.getString("url");
+        String artistId = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_ID);
+        String artistName = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_NAME);
+        String imageUrl = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL);
+
+        Log.d("Artist Data", artistId + " " + artistName + " " + imageUrl);
 
         ImageView bgImage = (ImageView) view.findViewById(R.id.artist_image);
         TextView artistNameView = (TextView) view.findViewById(R.id.artist_name);

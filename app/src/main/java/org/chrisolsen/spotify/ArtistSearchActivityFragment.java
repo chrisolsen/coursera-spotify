@@ -12,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -34,7 +35,6 @@ import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
-import kaaes.spotify.webapi.android.models.Image;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -63,17 +63,17 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         listView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Artist a = (Artist) listView.getAdapter().getItem(position);
-                Intent intent = new Intent(context, ArtistTopSongsActivity.class);
-                intent.putExtra("artistId", a.id);
-                intent.putExtra("artistName", a.name);
+                Cursor c = (Cursor)listView.getAdapter().getItem(position);
+                String artistId = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_ID));
+                String artistName = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_NAME));
+                String artistImageUrl = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL));
 
-                Bundle imageBundle = new Bundle();
-                Image image = a.images.get(0);
-                imageBundle.putString("url", image.url);
-                imageBundle.putInt("width", image.width);
-                imageBundle.putInt("height", image.height);
-                intent.putExtra("artistImage", imageBundle);
+                Log.d("Artist Input", artistId + " " + artistName + " " + artistImageUrl);
+
+                Intent intent = new Intent(context, ArtistTopSongsActivity.class);
+                intent.putExtra(ArtistsContract.ArtistEntry.COLUMN_ID, artistId);
+                intent.putExtra(ArtistsContract.ArtistEntry.COLUMN_NAME, artistName);
+                intent.putExtra(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL, artistImageUrl);
 
                 startActivity(intent);
             }
