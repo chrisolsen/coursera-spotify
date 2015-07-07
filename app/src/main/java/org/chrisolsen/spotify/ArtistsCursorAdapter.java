@@ -32,8 +32,6 @@ public class ArtistsCursorAdapter extends CursorAdapter {
         Picasso p = Picasso.with(context);
         RequestCreator rc;
 
-        Log.d("ArtistCursor", "bindView");
-
         nameView = (TextView)view.findViewById(R.id.artist_name);
         imageView = (ImageView)view.findViewById(R.id.artist_image);
 

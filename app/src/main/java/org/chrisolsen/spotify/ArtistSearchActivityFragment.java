@@ -1,6 +1,6 @@
 package org.chrisolsen.spotify;
 
-import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +9,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,15 +22,10 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,15 +35,15 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
-import retrofit.http.HEAD;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class ArtistSearchActivityFragment extends Fragment {
+public class ArtistSearchActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     Menu _menu;
     String mSearchFilter;
+    ArtistsCursorAdapter mCursorAdapter;
     private SpotifyService mSpotifyApi;
 
     public ArtistSearchActivityFragment() {
@@ -96,32 +93,19 @@ public class ArtistSearchActivityFragment extends Fragment {
 //        noResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
 //        listView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
 
-        Uri uri = ArtistsContract.ArtistEntry.CONTENT_URI;
-        Cursor c = context.getContentResolver().query(uri, null, null, null, null);
-
-        ArtistsCursorAdapter adapter = new ArtistsCursorAdapter(context, c, 0);
-        listView.setAdapter(adapter);
+        mCursorAdapter = new ArtistsCursorAdapter(context, null, 0);
+        listView.setAdapter(mCursorAdapter);
 
         return layout;
     }
 
-    /**
-     * Called when all saved state has been restored into the view hierarchy
-     * of the fragment.  This can be used to do initialization based on saved
-     * state that you are letting the view hierarchy track itself, such as
-     * whether check box widgets are currently checked.  This is called
-     * after {@link #onActivityCreated(Bundle)} and before
-     * {@link #onStart()}.
-     *
-     * @param savedInstanceState If the fragment is being re-created from
-     *                           a previous saved state, this is the state.
-     */
     @Override
     public void onViewStateRestored(Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
 
         if (savedInstanceState == null) return;
 
+        // TODO: do I still need to do this now that a loader is used?
         String filter = savedInstanceState.getString("filter");
         if (filter != null) {
             new SearchTask(mSpotifyApi).execute(filter);
@@ -131,9 +115,6 @@ public class ArtistSearchActivityFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
-
-        Log.d("DA FILTER", mSearchFilter == null ? "empty" : mSearchFilter);
         outState.putString("filter", mSearchFilter);
     }
 
@@ -146,10 +127,7 @@ public class ArtistSearchActivityFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-
+        // TODO: allow user to save their location
         switch(item.getItemId()) {
             case R.id.action_settings:
                 return true;
@@ -163,6 +141,7 @@ public class ArtistSearchActivityFragment extends Fragment {
         final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         final EditText filter = (EditText) parent.findViewById(R.id.artists_search_filter);
         final ImageButton cancel = (ImageButton) parent.findViewById(R.id.artist_search_cancel);
+        final Context context = getActivity();
 
         filter.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
@@ -190,80 +169,29 @@ public class ArtistSearchActivityFragment extends Fragment {
         });
     }
 
-    // private void bindList(List<Artist> items) {
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(0, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
 
-    //     if (!isAdded()) {
-    //         return;
-    //     }
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Uri uri = ArtistsContract.ArtistEntry.CONTENT_URI;
 
-    //     Activity a = getActivity();
-    //     ListView listView = (ListView)a.findViewById(android.R.id.list);
-    //     View noResults = a.findViewById(android.R.id.empty);
-    //     View instructions = a.findViewById(R.id.artists_search_instructions);
+        return new CursorLoader(getActivity(),
+                uri, null, null, null, null);
+    }
 
-    //     boolean hasResults = items.size() > 0;
-    //     boolean hasFilter = mSearchFilter != null && mSearchFilter.length() > 0;
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mCursorAdapter.swapCursor(data);
+    }
 
-    //     instructions.setVisibility(!hasResults && !hasFilter ? View.VISIBLE : View.GONE);
-    //     noResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
-    //     listView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
-
-    //     ArtistAdapter adapter = new ArtistAdapter(a, android.R.id.list, items);
-    //     listView.setAdapter(adapter);
-    // }
-
-    // private class ArtistAdapter extends ArrayAdapter<Artist> {
-    //     List<Artist> artists;
-
-    //     public ArtistAdapter(Context context, int resource, List<Artist> objects) {
-    //         super(context, resource, objects);
-    //         artists = objects;
-    //     }
-
-    //     @Override
-    //     public View getView(int position, View convertView, ViewGroup parent) {
-    //         View v = convertView;
-    //         TextView t;
-    //         ImageView image;
-    //         String imageUrl;
-
-    //         if (v == null) {
-    //             v = LayoutInflater
-    //                     .from(parent.getContext())
-    //                     .inflate(R.layout.artist_search_listitem, parent, false);
-    //         }
-
-    //         Artist a = artists.get(position);
-    //         // name
-    //         t = (TextView)v.findViewById(R.id.artist_name);
-    //         t.setText(a.name);
-
-    //         // image
-    //         // the middle image is the one we want, but will settle for the smallest
-    //         image = (ImageView)v.findViewById(R.id.artist_image);
-    //         if (a.images.size() >= 2) {
-    //             imageUrl = a.images.get(1).url; // 200px
-    //         } else if (a.images.size() == 1) {
-    //             imageUrl = a.images.get(0).url; // 64px
-    //         } else {
-    //             imageUrl = null;
-    //         }
-
-    //         Picasso p = Picasso.with(getContext());
-    //         RequestCreator rc;
-
-    //         if (imageUrl == null || imageUrl.length() == 0) {
-    //             rc = p.load(R.mipmap.no_photo);
-    //         } else {
-    //             rc = p.load(imageUrl);
-    //         }
-
-    //         //rc.noFade(); // required for the circular image view plugin
-    //         rc.into(image);
-
-    //         return v;
-    //     }
-    // }
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mCursorAdapter.swapCursor(null);
+    }
 
     private class SearchTask extends AsyncTask<String, Void, ArtistsPager> {
         SpotifyService spotify;
@@ -292,15 +220,14 @@ public class ArtistSearchActivityFragment extends Fragment {
                 artists = query.artists.items;
             }
 
-            Log.d("AsyncTask", "Result count: " + artists.size());
-
             // convert the artists to ContentValues[]
             ContentValues[] searchResults = new ContentValues[artists.size()];
             int i = 0;
             for (Artist a : artists) {
                 ContentValues vals = new ContentValues();
 
-                vals.put(ArtistsContract.ArtistEntry._ID, a.id);
+                vals.put(ArtistsContract.ArtistEntry._ID, i);
+                vals.put(ArtistsContract.ArtistEntry.COLUMN_ID, a.id);
                 vals.put(ArtistsContract.ArtistEntry.COLUMN_NAME, a.name);
 
                 String imageUrl;
@@ -311,16 +238,16 @@ public class ArtistSearchActivityFragment extends Fragment {
                 } else {
                     imageUrl = null;
                 }
-                vals.put(ArtistsContract.ArtistEntry.COLUMN_NAME, imageUrl);
+                vals.put(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL, imageUrl);
 
                 searchResults[i] = vals;
                 i++;
             }
 
-            Log.d("AsyncTask", searchResults.toString());
-
             Uri uri = ArtistsContract.ArtistEntry.CONTENT_URI;
-            getActivity().getContentResolver().bulkInsert(uri, searchResults);
+            ContentResolver cr = getActivity().getContentResolver();
+            cr.bulkInsert(uri, searchResults);
+            cr.notifyChange(ArtistsContract.ArtistEntry.CONTENT_URI, null);
         }
     }
 }
