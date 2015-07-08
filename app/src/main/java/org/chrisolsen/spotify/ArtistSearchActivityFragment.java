@@ -35,6 +35,7 @@ import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Image;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -230,14 +231,16 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
                 vals.put(ArtistsContract.ArtistEntry.COLUMN_ID, a.id);
                 vals.put(ArtistsContract.ArtistEntry.COLUMN_NAME, a.name);
 
-                String imageUrl;
-                if (a.images.size() >= 2) {
-                    imageUrl = a.images.get(1).url; // 200px
-                } else if (a.images.size() == 1) {
-                    imageUrl = a.images.get(0).url; // 64px
-                } else {
-                    imageUrl = null;
+                // get the largest image url
+                String imageUrl = null; // default value
+                int largestSize = 0;
+                for (Image img : a.images) {
+                    if (img.width > largestSize) {
+                        imageUrl = img.url;
+                        largestSize = img.width;
+                    }
                 }
+
                 vals.put(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL, imageUrl);
 
                 searchResults[i] = vals;
