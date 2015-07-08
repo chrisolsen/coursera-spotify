@@ -55,13 +55,13 @@ public class ArtistTopSongsActivityFragment extends Fragment {
         String artistName = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_NAME);
         String imageUrl = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL);
 
-        Log.d("Artist Data", artistId + " " + artistName + " " + imageUrl);
-
         ImageView bgImage = (ImageView) view.findViewById(R.id.artist_image);
-        TextView artistNameView = (TextView) view.findViewById(R.id.artist_name);
-        artistNameView.setText(artistName);
 
-        Picasso.with(getActivity()).load(imageUrl).into(bgImage);
+        if (imageUrl != null) {
+            Picasso.with(getActivity()).load(imageUrl).into(bgImage);
+        } else {
+            bgImage.setVisibility(View.GONE);
+        }
 
         try {
             AppCompatActivity a = (AppCompatActivity)getActivity();

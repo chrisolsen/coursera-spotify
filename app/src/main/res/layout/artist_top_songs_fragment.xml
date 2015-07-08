@@ -5,50 +5,12 @@
     android:orientation="vertical"
     tools:context="org.chrisolsen.spotify.ArtistTopSongsActivityFragment">
 
-    <FrameLayout
+    <ImageView
+        android:id="@+id/artist_image"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/foofighters"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:id="@+id/artist_image"
-            android:scaleType="centerCrop"
-            tools:src="@drawable/foofighters"
-            android:layout_width="match_parent"
-            android:layout_height="300dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="10dip"
-            android:layout_gravity="bottom"
-            android:background="#66000000"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/artist_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:textColor="#eeeeee"
-                android:shadowColor="#000000"
-                android:shadowRadius="2"
-                tools:text="Foo Fighters"
-                android:gravity="center_horizontal"
-                android:textSize="@dimen/font_size_medium" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="@dimen/font_size_small"
-                android:gravity="center_horizontal"
-                android:shadowColor="#000000"
-                android:shadowRadius="2"
-                android:textColor="#eeeeee"
-                android:text="@string/title_activity_artist_top_songs"/>
-
-        </LinearLayout>
-
-    </FrameLayout>
+        android:layout_height="200dp" />
 
     <LinearLayout
         android:id="@android:id/empty"
