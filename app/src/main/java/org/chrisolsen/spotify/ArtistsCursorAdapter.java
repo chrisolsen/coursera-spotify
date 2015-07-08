@@ -45,7 +45,7 @@ public class ArtistsCursorAdapter extends CursorAdapter {
 
         // bind
         nameView.setText(name);
-        rc = imageUrl == null ? p.load(R.mipmap.no_photo) : p.load(imageUrl);
+        rc = imageUrl == null ? p.load(R.mipmap.ic_no_photo) : p.load(imageUrl);
         rc.into(imageView);
     }
 }
