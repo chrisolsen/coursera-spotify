@@ -24,14 +24,18 @@
 
         <TextView
             android:id="@+id/album_name"
+            android:ellipsize="end"
+            android:singleLine="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            tools:text="Album Name" />
+            tools:text="Album Name with a very very very very very very very very very long name" />
 
         <TextView
             android:id="@+id/song_name"
+            android:ellipsize="end"
+            android:singleLine="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
