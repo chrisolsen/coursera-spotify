@@ -1,6 +1,5 @@
 package org.chrisolsen.spotify;
 
-import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -32,6 +31,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.chrisolsen.spotify.ArtistsContract.ArtistEntry;
 
 import java.util.List;
 
@@ -81,14 +82,14 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
                 Cursor c = (Cursor)mListView.getAdapter().getItem(position);
 
                 // FIXME: use pre-set column indices rather than calling getColumnIndex all the time
-                String artistId = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_ID));
-                String artistName = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_NAME));
-                String artistImageUrl = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL));
+                String artistId = c.getString(c.getColumnIndex(ArtistEntry.COLUMN_ID));
+                String artistName = c.getString(c.getColumnIndex(ArtistEntry.COLUMN_NAME));
+                String artistImageUrl = c.getString(c.getColumnIndex(ArtistEntry.COLUMN_IMAGE_URL));
 
                 Intent intent = new Intent(context, ArtistTopSongsActivity.class);
-                intent.putExtra(ArtistsContract.ArtistEntry.COLUMN_ID, artistId);
-                intent.putExtra(ArtistsContract.ArtistEntry.COLUMN_NAME, artistName);
-                intent.putExtra(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL, artistImageUrl);
+                intent.putExtra(ArtistEntry.COLUMN_ID, artistId);
+                intent.putExtra(ArtistEntry.COLUMN_NAME, artistName);
+                intent.putExtra(ArtistEntry.COLUMN_IMAGE_URL, artistImageUrl);
 
                 startActivity(intent);
             }
@@ -97,7 +98,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         // required within a fragment
         setHasOptionsMenu(true);
 
-        bindSearch(layout);
+        bindSearch();
 
         mCursorAdapter = new ArtistsCursorAdapter(context, null, 0);
         mListView.setAdapter(mCursorAdapter);
@@ -140,10 +141,9 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         return super.onOptionsItemSelected(item);
     }
 
-    private void bindSearch(View parent) {
+    private void bindSearch() {
 
         final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        final Context context = getActivity();
 
         mSearchText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -275,9 +275,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             ContentResolver cr = getActivity().getContentResolver();
             cr.bulkInsert(uri, searchResults);
             cr.notifyChange(ArtistsContract.ArtistEntry.CONTENT_URI, null);
-
-            // show/hide controls
-            Activity a = getActivity();
 
             boolean hasResults = searchResults.length > 0;
             boolean hasFilter = mSearchFilter.length() > 0;
