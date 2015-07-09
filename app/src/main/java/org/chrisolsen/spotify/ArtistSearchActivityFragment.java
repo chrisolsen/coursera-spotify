@@ -62,11 +62,11 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor c = (Cursor)listView.getAdapter().getItem(position);
+
+                // FIXME: use pre-set column indices rather than calling getColumnIndex all the time
                 String artistId = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_ID));
                 String artistName = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_NAME));
                 String artistImageUrl = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL));
-
-                Log.d("Artist Input", artistId + " " + artistName + " " + artistImageUrl);
 
                 Intent intent = new Intent(context, ArtistTopSongsActivity.class);
                 intent.putExtra(ArtistsContract.ArtistEntry.COLUMN_ID, artistId);
@@ -91,7 +91,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        _menu = menu;
         inflater.inflate(R.menu.menu_artist_search, menu);
     }
 
@@ -168,6 +167,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Uri uri = ArtistsContract.ArtistEntry.CONTENT_URI;
 
+        // https://youtu.be/5AO8DwJ6a4s?t=45
         return new CursorLoader(getActivity(),
                 uri, null, null, null, null);
     }

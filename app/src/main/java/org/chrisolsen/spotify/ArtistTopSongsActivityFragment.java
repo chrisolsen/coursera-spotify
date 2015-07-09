@@ -49,6 +49,8 @@ public class ArtistTopSongsActivityFragment extends Fragment {
         View view = inflater.inflate(R.layout.artist_top_songs_fragment, container, false);
 
         // perform api request
+        // FIXME: pass in a uri instead of individual values and use the content provider
+        // to fetch the data
         Intent intent = getActivity().getIntent();
         String artistId = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_ID);
         String artistName = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_NAME);
