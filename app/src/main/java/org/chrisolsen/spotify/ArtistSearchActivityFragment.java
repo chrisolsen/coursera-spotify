@@ -22,11 +22,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -52,6 +55,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     private ImageButton mCancelButton;
     private View mNoResults;
     private View mSearchInstructions;
+    private ImageView mSearchIndicator;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,6 +70,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         mCancelButton = (ImageButton) layout.findViewById(R.id.artist_search_cancel);
         mNoResults = layout.findViewById(android.R.id.empty);
         mSearchInstructions = layout.findViewById(R.id.artists_search_instructions);
+        mSearchIndicator = (ImageView) layout.findViewById(R.id.artist_search_indicator);
 
         mSpotifyApi = new SpotifyApi().getService();
         
@@ -213,6 +218,10 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
         public SearchTask(SpotifyService spotify) {
             this.spotify = spotify;
+
+            mSearchIndicator.setImageResource(R.mipmap.ic_spinner);
+            Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.rotate_around_center);
+            mSearchIndicator.startAnimation(animation);
         }
 
         @Override
@@ -273,7 +282,10 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             boolean hasResults = searchResults.length > 0;
             boolean hasFilter = mSearchFilter.length() > 0;
 
+            mSearchIndicator.setImageResource(R.mipmap.ic_search_dark);
+            mSearchIndicator.clearAnimation();
             mSearchInstructions.setVisibility(View.GONE);
+
             mNoResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
             mListView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
         }

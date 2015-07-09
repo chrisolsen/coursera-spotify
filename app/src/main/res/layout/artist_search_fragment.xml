@@ -41,11 +41,14 @@
         android:gravity="center">
 
         <ImageView
+            android:id="@+id/artist_search_indicator"
             android:src="@mipmap/ic_search_dark"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_gravity="center_horizontal"
             android:alpha="0.3" />
+
+
     </LinearLayout>
 
     <LinearLayout
