@@ -30,7 +30,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -48,21 +47,33 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     private ArtistsCursorAdapter mCursorAdapter;
     private SpotifyService mSpotifyApi;
 
+    private ListView mListView;
+    private EditText mSearchText;
+    private ImageButton mCancelButton;
+    private View mNoResults;
+    private View mSearchInstructions;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         final Context context = getActivity();
-        final View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
-        final ListView listView = (ListView)layout.findViewById(android.R.id.list);
+        View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
+
+        // views
+        mListView = (ListView)layout.findViewById(android.R.id.list);
+        mSearchText = (EditText) layout.findViewById(R.id.artists_search_filter);
+        mCancelButton = (ImageButton) layout.findViewById(R.id.artist_search_cancel);
+        mNoResults = layout.findViewById(android.R.id.empty);
+        mSearchInstructions = layout.findViewById(R.id.artists_search_instructions);
 
         mSpotifyApi = new SpotifyApi().getService();
         
         // ListView select event
-        listView.setOnItemClickListener(new ListView.OnItemClickListener() {
+        mListView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Cursor c = (Cursor)listView.getAdapter().getItem(position);
+                Cursor c = (Cursor)mListView.getAdapter().getItem(position);
 
                 // FIXME: use pre-set column indices rather than calling getColumnIndex all the time
                 String artistId = c.getString(c.getColumnIndex(ArtistsContract.ArtistEntry.COLUMN_ID));
@@ -84,7 +95,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         bindSearch(layout);
 
         mCursorAdapter = new ArtistsCursorAdapter(context, null, 0);
-        listView.setAdapter(mCursorAdapter);
+        mListView.setAdapter(mCursorAdapter);
 
         return layout;
     }
@@ -95,10 +106,9 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
         if (savedInstanceState == null) return;
 
-        // TODO: do I still need to do this now that a loader is used?
-        String filter = savedInstanceState.getString("filter");
-        if (filter != null) {
-            new SearchTask(mSpotifyApi).execute(filter);
+        mSearchFilter = savedInstanceState.getString("filter");
+        if (mSearchFilter != null) {
+            new SearchTask(mSpotifyApi).execute(mSearchFilter);
         }
     }
 
@@ -128,22 +138,18 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     private void bindSearch(View parent) {
 
         final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        final EditText filter = (EditText) parent.findViewById(R.id.artists_search_filter);
-        final ImageButton cancel = (ImageButton) parent.findViewById(R.id.artist_search_cancel);
         final Context context = getActivity();
 
-        final View instructions = parent.findViewById(R.id.artists_search_instructions);
-
-        filter.addTextChangedListener(new TextWatcher() {
+        mSearchText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                boolean isBlankFilter = filter.getText().toString().length() == 0;
+                boolean isBlankFilter = mSearchText.getText().toString().length() == 0;
 
                 if (isBlankFilter) {
-                    instructions.setVisibility(View.VISIBLE);
+                    mSearchInstructions.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -151,7 +157,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             public void afterTextChanged(Editable s) { }
         });
 
-        filter.setOnEditorActionListener(new EditText.OnEditorActionListener() {
+        mSearchText.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 mSearchFilter = null;  // only save the filter after clicking the search button
@@ -159,20 +165,20 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     mSearchFilter = String.valueOf(v.getText());
                     new SearchTask(mSpotifyApi).execute(mSearchFilter);
-                    imm.hideSoftInputFromWindow(filter.getWindowToken(), 0);
+                    imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
                     return true;
                 }
                 return false;
             }
         });
 
-        cancel.setOnClickListener(new View.OnClickListener() {
+        mCancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                filter.setText("");
+                mSearchText.setText("");
 
                 // hide the keyboard
-                imm.hideSoftInputFromWindow(filter.getWindowToken(), 0);
+                imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
             }
         });
     }
@@ -263,16 +269,13 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
             // show/hide controls
             Activity a = getActivity();
-            View noResults = a.findViewById(android.R.id.empty);
-            View instructions = a.findViewById(R.id.artists_search_instructions);
-            View listView = a.findViewById(android.R.id.list);
 
             boolean hasResults = searchResults.length > 0;
             boolean hasFilter = mSearchFilter.length() > 0;
 
-            instructions.setVisibility(View.GONE);
-            noResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
-            listView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
+            mSearchInstructions.setVisibility(View.GONE);
+            mNoResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
+            mListView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
         }
     }
 }
