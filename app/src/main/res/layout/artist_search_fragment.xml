@@ -34,10 +34,9 @@
     </FrameLayout>
 
     <LinearLayout
-        android:visibility="gone"
+        android:id="@+id/artists_search_instructions"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/artists_search_instructions"
         android:orientation="vertical"
         android:gravity="center">
 

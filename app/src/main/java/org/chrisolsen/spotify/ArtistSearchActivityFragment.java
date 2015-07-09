@@ -1,5 +1,6 @@
 package org.chrisolsen.spotify;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,7 +13,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -41,13 +43,9 @@ import kaaes.spotify.webapi.android.models.Image;
  */
 public class ArtistSearchActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    Menu _menu;
-    String mSearchFilter;
-    ArtistsCursorAdapter mCursorAdapter;
+    private String mSearchFilter;
+    private ArtistsCursorAdapter mCursorAdapter;
     private SpotifyService mSpotifyApi;
-
-    public ArtistSearchActivityFragment() {
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -114,6 +112,25 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         final EditText filter = (EditText) parent.findViewById(R.id.artists_search_filter);
         final ImageButton cancel = (ImageButton) parent.findViewById(R.id.artist_search_cancel);
         final Context context = getActivity();
+
+        final View instructions = parent.findViewById(R.id.artists_search_instructions);
+
+        filter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                boolean isBlankFilter = filter.getText().toString().length() == 0;
+
+                if (isBlankFilter) {
+                    instructions.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
 
         filter.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
@@ -223,6 +240,19 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             ContentResolver cr = getActivity().getContentResolver();
             cr.bulkInsert(uri, searchResults);
             cr.notifyChange(ArtistsContract.ArtistEntry.CONTENT_URI, null);
+
+            // show/hide controls
+            Activity a = getActivity();
+            View noResults = a.findViewById(android.R.id.empty);
+            View instructions = a.findViewById(R.id.artists_search_instructions);
+            View listView = a.findViewById(android.R.id.list);
+
+            boolean hasResults = searchResults.length > 0;
+            boolean hasFilter = mSearchFilter.length() > 0;
+
+            instructions.setVisibility(View.GONE);
+            noResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
+            listView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
         }
     }
 }
