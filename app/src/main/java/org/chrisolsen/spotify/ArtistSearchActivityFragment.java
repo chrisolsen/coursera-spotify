@@ -28,7 +28,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -98,25 +97,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         listView.setAdapter(mCursorAdapter);
 
         return layout;
-    }
-
-    @Override
-    public void onViewStateRestored(Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-
-        if (savedInstanceState == null) return;
-
-        // TODO: do I still need to do this now that a loader is used?
-        String filter = savedInstanceState.getString("filter");
-        if (filter != null) {
-            new SearchTask(mSpotifyApi).execute(filter);
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString("filter", mSearchFilter);
     }
 
     @Override
