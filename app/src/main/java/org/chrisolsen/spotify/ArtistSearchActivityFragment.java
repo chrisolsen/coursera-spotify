@@ -83,15 +83,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         setHasOptionsMenu(true);
 
         bindSearch(layout);
-//        View noResults = a.findViewById(android.R.id.empty);
-//        View instructions = a.findViewById(R.id.artists_search_instructions);
-//
-//        boolean hasResults = items.size() > 0;
-//        boolean hasFilter = filter.getText().length() > 0;
-//
-//        instructions.setVisibility(!hasResults && !hasFilter ? View.VISIBLE : View.GONE);
-//        noResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
-//        listView.setVisibility(hasResults ? View.VISIBLE : View.GONE);
 
         mCursorAdapter = new ArtistsCursorAdapter(context, null, 0);
         listView.setAdapter(mCursorAdapter);
@@ -174,7 +165,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         mCursorAdapter.swapCursor(null);
     }
 
-    private class SearchTask extends AsyncTask<String, Void, ArtistsPager> {
+    private class SearchTask extends AsyncTask<String, Void, ContentValues[]> {
         SpotifyService spotify;
 
         public SearchTask(SpotifyService spotify) {
@@ -182,27 +173,23 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         }
 
         @Override
-        protected ArtistsPager doInBackground(String... filter) {
+        protected ContentValues[] doInBackground(String... filter) {
             String f = filter[0];
             if (f.length() == 0) {
                 return null;
             }
 
-            return this.spotify.searchArtists(f);
-        }
+            ArtistsPager results = this.spotify.searchArtists(f);
 
-        @Override
-        protected void onPostExecute(ArtistsPager query) {
-            List<Artist> artists;
-
-            if (query == null) {
-                artists = new ArrayList<>();
-            } else {
-                artists = query.artists.items;
+            if (results == null) {
+                return new ContentValues[] {};
             }
+
+            List<Artist> artists = results.artists.items;
 
             // convert the artists to ContentValues[]
             ContentValues[] searchResults = new ContentValues[artists.size()];
+
             int i = 0;
             for (Artist a : artists) {
                 ContentValues vals = new ContentValues();
@@ -227,6 +214,11 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
                 i++;
             }
 
+            return searchResults;
+        }
+
+        @Override
+        protected void onPostExecute(ContentValues[] searchResults) {
             Uri uri = ArtistsContract.ArtistEntry.CONTENT_URI;
             ContentResolver cr = getActivity().getContentResolver();
             cr.bulkInsert(uri, searchResults);
