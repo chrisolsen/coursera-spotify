@@ -172,6 +172,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         mCancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mSearchText.setText("");
                 resetState();
             }
         });
