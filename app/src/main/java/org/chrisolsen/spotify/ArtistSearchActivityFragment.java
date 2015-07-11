@@ -1,10 +1,13 @@
 package org.chrisolsen.spotify;
 
+import android.accounts.NetworkErrorException;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -28,6 +31,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.chrisolsen.spotify.ArtistsContract.ArtistEntry;
 
@@ -111,7 +115,12 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
         mSearchFilter = savedInstanceState.getString("filter");
         if (mSearchFilter != null) {
-            new SearchTask(mSpotifyApi).execute(mSearchFilter);
+            try {
+                new SearchTask(mSpotifyApi).execute(mSearchFilter);
+            } catch (NetworkErrorException e) {
+                resetState();
+                Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -122,8 +131,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     }
 
     private void bindSearch() {
-
-        final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
 
         mSearchText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -149,8 +156,13 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     mSearchFilter = String.valueOf(v.getText());
-                    new SearchTask(mSpotifyApi).execute(mSearchFilter);
-                    imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
+                    try {
+                        new SearchTask(mSpotifyApi).execute(mSearchFilter);
+                    } catch (NetworkErrorException e) {
+                        Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
+                        resetState();
+                    }
+
                     return true;
                 }
                 return false;
@@ -160,12 +172,17 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         mCancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSearchText.setText("");
-
-                // hide the keyboard
-                imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
+                resetState();
             }
         });
+    }
+
+    private void resetState() {
+        final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
+        mSearchIndicator.setImageResource(R.mipmap.ic_search_dark);
+        mSearchIndicator.clearAnimation();
+        mSearchInstructions.setVisibility(View.GONE);
     }
 
     @Override
@@ -196,12 +213,20 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     private class SearchTask extends AsyncTask<String, Void, ContentValues[]> {
         SpotifyService spotify;
 
-        public SearchTask(SpotifyService spotify) {
+        public SearchTask(SpotifyService spotify) throws NetworkErrorException {
             this.spotify = spotify;
 
             mSearchIndicator.setImageResource(R.mipmap.ic_spinner);
             Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.rotate_around_center);
             mSearchIndicator.startAnimation(animation);
+
+            ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+
+            if (info == null || !info.isConnected()) {
+                this.cancel(true);
+                throw new NetworkErrorException();
+            }
         }
 
         @Override
@@ -259,9 +284,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             boolean hasResults = searchResults.length > 0;
             boolean hasFilter = mSearchFilter.length() > 0;
 
-            mSearchIndicator.setImageResource(R.mipmap.ic_search_dark);
-            mSearchIndicator.clearAnimation();
-            mSearchInstructions.setVisibility(View.GONE);
+            resetState();
 
             mNoResults.setVisibility(!hasResults && hasFilter ? View.VISIBLE : View.GONE);
             mListView.setVisibility(hasResults ? View.VISIBLE : View.GONE);

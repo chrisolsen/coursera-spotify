@@ -2,6 +2,8 @@ package org.chrisolsen.spotify;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -73,6 +75,7 @@ public class ArtistTopSongsActivityFragment extends Fragment {
             return null;
         }
 
+
         new TopSongRequestTask().execute(artistId);
 
         return view;
@@ -138,6 +141,14 @@ public class ArtistTopSongsActivityFragment extends Fragment {
         public TopSongRequestTask() {
             SpotifyApi api = new SpotifyApi();
             this.spotify = api.getService();
+
+            ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo info = cm.getActiveNetworkInfo();
+
+            if (info == null || !info.isConnected()) {
+                Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
+                this.cancel(true);
+            }
         }
 
         @Override
