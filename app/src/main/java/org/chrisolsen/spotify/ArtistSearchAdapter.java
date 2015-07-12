@@ -40,6 +40,7 @@ public class ArtistSearchAdapter extends ArrayAdapter<ContentValues> {
         TextView nameView;
         ImageView imageView;
         ViewHolder holder;
+
         View view = convertView;
 
         if (view == null) {
@@ -62,7 +63,7 @@ public class ArtistSearchAdapter extends ArrayAdapter<ContentValues> {
         holder = (ViewHolder)view.getTag();
         ContentValues artist = getItem(position);
 
-        // cursor values
+        // artist attributes
         String name = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_NAME);
         String imageUrl = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL);
 

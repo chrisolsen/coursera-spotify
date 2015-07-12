@@ -84,6 +84,18 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     }
 
     /**
+     * Save any existing search data. Since the data is stored in ContentValues, which are already
+     * parcelable, there is no additional work required.
+     * @param outState
+     */
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelableArray("searchResults", mSearchResults);
+    }
+
+    /**
      * Bind any saved search results to the search adapter to retain any previous scroll position
      * and ensure any previous search results remain.
      * @param savedInstanceState
@@ -107,19 +119,8 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         mArtistSearchAdapter.clear();
         mArtistSearchAdapter.addAll(mSearchResults);
         mArtistSearchAdapter.notifyDataSetChanged();
+
         mSearchInstructions.setVisibility(View.GONE);
-    }
-
-    /**
-     * Save any existing search data. Since the data is stored in ContentValues, which are already
-     * parcelable, there is no additional work required.
-     * @param outState
-     */
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        outState.putParcelableArray("searchResults", mSearchResults);
     }
 
     /**
@@ -162,7 +163,8 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
         LoaderManager lm = getLoaderManager();
 
-        // no idea why this *if* is needed, but if this check is not added
+        // no idea why this *if* is needed, but if this check is not added coming back to this
+        // fragment from the artist detail will not bind the existing list data.
         if (lm.getLoader(LOADER_ARTIST_SEARCH) != null) {
             lm.initLoader(LOADER_ARTIST_SEARCH, null, this);
         }
@@ -181,7 +183,9 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
                 mSearchIndicator.startAnimation(animation);
                 mSearchIndicator.setImageResource(R.mipmap.ic_spinner);
             }
+
             return new ArtistSearchLoader(getActivity(), filter);
+
         } catch (NetworkErrorException e) {
             Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
             return null;
@@ -211,9 +215,11 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             mNoResults.setVisibility(View.VISIBLE);
         }
 
+        // save a reference to the data to allow saving of the state
         mSearchResults = new ContentValues[data.size()];
         data.toArray(mSearchResults);
 
+        // make new data visible in the list
         mArtistSearchAdapter.clear();
         mArtistSearchAdapter.addAll(data);
         mArtistSearchAdapter.notifyDataSetChanged();
