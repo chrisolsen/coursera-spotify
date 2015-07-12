@@ -17,11 +17,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:visibility="gone"
         android:gravity="center">
 
         <ImageView
             android:id="@+id/artist_search_indicator"
-            android:src="@mipmap/ic_search_dark"
+            android:src="@mipmap/ic_spinner"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_gravity="center_horizontal"

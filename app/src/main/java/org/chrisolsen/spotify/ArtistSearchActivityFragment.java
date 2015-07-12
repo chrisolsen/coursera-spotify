@@ -36,7 +36,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     private SearchView mSearchText;
     private View mNoResults;
     private View mSearchInstructions;
-    private ImageView mSearchIndicator;
     private InputMethodManager mImm;
 
     private ContentValues[] mSearchResults;
@@ -53,9 +52,14 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         mListView = (ListView)layout.findViewById(android.R.id.list);
         mNoResults = layout.findViewById(android.R.id.empty);
         mSearchInstructions = layout.findViewById(R.id.artists_search_instructions);
-        mSearchIndicator = (ImageView) layout.findViewById(R.id.artist_search_indicator);
+
         mImm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         mSearchText = (SearchView) layout.findViewById(R.id.searchText);
+
+        // is always spinning, just shown or hidden
+        ImageView searchSpinner = (ImageView) layout.findViewById(R.id.artist_search_indicator);
+        Animation spin = AnimationUtils.loadAnimation(context, R.anim.rotate_around_center);
+        searchSpinner.startAnimation(spin);
 
         mSearchText.setIconifiedByDefault(false);
         mSearchText.setQueryHint(getResources().getString(R.string.artists_search_instructions));
@@ -69,9 +73,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             @Override
             public boolean onQueryTextChange(String newText) {
                 if (newText == null || newText.length() == 0) {
-                    mSearchIndicator.setImageResource(R.mipmap.ic_search_dark);
-                    mSearchIndicator.clearAnimation();
-                    mSearchInstructions.setVisibility(View.VISIBLE);
+                    mSearchInstructions.setVisibility(View.GONE);
                     mListView.setVisibility(View.GONE);
 
                     return true;
@@ -163,15 +165,14 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             mImm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
 
             if (filter.length() > 0) {
-                Animation animation = AnimationUtils.loadAnimation(getActivity(), R.anim.rotate_around_center);
-                mSearchIndicator.startAnimation(animation);
-                mSearchIndicator.setImageResource(R.mipmap.ic_spinner);
+                mSearchInstructions.setVisibility(View.VISIBLE);
             }
 
             return new ArtistSearchLoader(getActivity(), filter);
 
         } catch (NetworkErrorException e) {
             Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
+            mSearchInstructions.setVisibility(View.GONE);
             return null;
         }
     }
@@ -181,20 +182,17 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         boolean hasFilter = mSearchText.getQuery().length() > 0;
         boolean hasData = data.size() > 0;
 
+        mSearchInstructions.setVisibility(View.GONE);
+
         if (!hasFilter && !hasData) {
-            mSearchInstructions.setVisibility(View.VISIBLE);
-            mSearchInstructions.clearAnimation();
-            mSearchIndicator.setImageResource(R.mipmap.ic_search_dark);
             mListView.setVisibility(View.GONE);
             mNoResults.setVisibility(View.GONE);
         } else
         if (hasFilter && hasData) {
-            mSearchInstructions.setVisibility(View.GONE);
             mListView.setVisibility(View.VISIBLE);
             mNoResults.setVisibility(View.GONE);
         } else
         if (hasFilter && !hasData) {
-            mSearchInstructions.setVisibility(View.GONE);
             mListView.setVisibility(View.GONE);
             mNoResults.setVisibility(View.VISIBLE);
         }
