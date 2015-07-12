@@ -57,8 +57,6 @@
     <ListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
-        android:divider="@drawable/listitem_divider"
-        android:dividerHeight="1px"
         android:layout_height="match_parent" />
 
 </LinearLayout>
