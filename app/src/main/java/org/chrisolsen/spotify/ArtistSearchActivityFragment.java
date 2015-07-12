@@ -24,7 +24,6 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ArtistSearchActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<ContentValues>> {
 
     private final String LOG_TAG = this.getClass().getSimpleName();
@@ -75,6 +74,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
                 if (newText == null || newText.length() == 0) {
                     mSearchInstructions.setVisibility(View.GONE);
                     mListView.setVisibility(View.GONE);
+                    mNoResults.setVisibility(View.GONE); // in case the clear happened after no results were returned
 
                     return true;
                 }

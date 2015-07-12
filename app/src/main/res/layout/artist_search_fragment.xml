@@ -30,29 +30,15 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <TextView
         android:id="@android:id/empty"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:textSize="@dimen/font_size_medium"
+        android:gravity="center"
         android:layout_gravity="center_vertical"
-        android:orientation="vertical"
         android:visibility="gone"
-        android:gravity="center">
-
-        <ImageView
-            android:src="@mipmap/ic_emoticon_sad"
-            android:layout_width="104dp"
-            android:layout_height="104dp"
-            android:layout_gravity="center_horizontal"
-            android:alpha="0.3" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="@dimen/font_size_medium"
-            android:gravity="center"
-            android:text="@string/artists_no_results"/>
-    </LinearLayout>
+        android:text="@string/artists_no_results"/>
 
     <ListView
         android:id="@android:id/list"

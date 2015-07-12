@@ -28,6 +28,7 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
     private String mArtistId;
     private ListView mListView;
     private ArtistTopSongsAdapter mAdapter;
+    private View mNoResults;
 
     public ArtistTopSongsActivityFragment() { }
 
@@ -37,6 +38,7 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
 
         View view = inflater.inflate(R.layout.artist_top_songs_fragment, container, false);
         mListView = (ListView)view.findViewById(android.R.id.list);
+        mNoResults = view.findViewById(android.R.id.empty);
 
         // to fetch the data
         Intent intent = getActivity().getIntent();
@@ -90,6 +92,10 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
 
         // TODO: holder on to a reference to the returned data to save the instance state in stage 2
         // when we are able to drill into the song
+
+        boolean hasSongs = data.size() > 0;
+        mListView.setVisibility(hasSongs ? View.VISIBLE : View.GONE);
+        mNoResults.setVisibility(hasSongs ? View.GONE : View.VISIBLE);
 
         mAdapter.clear();
         mAdapter.addAll(data);
