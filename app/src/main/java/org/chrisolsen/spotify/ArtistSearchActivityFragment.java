@@ -9,20 +9,16 @@ import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.view.KeyEvent;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -37,8 +33,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     private ArtistSearchAdapter mArtistSearchAdapter;
 
     private ListView mListView;
-    private EditText mSearchText;
-    private ImageButton mCancelButton;
+    private SearchView mSearchText;
     private View mNoResults;
     private View mSearchInstructions;
     private ImageView mSearchIndicator;
@@ -51,16 +46,40 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
                              Bundle savedInstanceState) {
 
         final Context context = getActivity();
+        final LoaderManager.LoaderCallbacks<List<ContentValues>> loaderCallback = this;
         View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
 
         // views
         mListView = (ListView)layout.findViewById(android.R.id.list);
-        mSearchText = (EditText) layout.findViewById(R.id.artists_search_filter);
-        mCancelButton = (ImageButton) layout.findViewById(R.id.artist_search_cancel);
         mNoResults = layout.findViewById(android.R.id.empty);
         mSearchInstructions = layout.findViewById(R.id.artists_search_instructions);
         mSearchIndicator = (ImageView) layout.findViewById(R.id.artist_search_indicator);
         mImm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        mSearchText = (SearchView) layout.findViewById(R.id.searchText);
+
+        mSearchText.setIconifiedByDefault(false);
+        mSearchText.setQueryHint(getResources().getString(R.string.artists_search_instructions));
+        mSearchText.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                getLoaderManager().restartLoader(LOADER_ARTIST_SEARCH, null, loaderCallback);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText == null || newText.length() == 0) {
+                    mSearchIndicator.setImageResource(R.mipmap.ic_search_dark);
+                    mSearchIndicator.clearAnimation();
+                    mSearchInstructions.setVisibility(View.VISIBLE);
+                    mListView.setVisibility(View.GONE);
+
+                    return true;
+                }
+                return false;
+            }
+        });
+
         
         // ListView select event
         mListView.setOnItemClickListener(new ListView.OnItemClickListener() {
@@ -75,8 +94,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             }
         });
 
-        bindSearch();
-
         mArtistSearchAdapter = new ArtistSearchAdapter(getActivity(), new ArrayList<ContentValues>());
         mListView.setAdapter(mArtistSearchAdapter);
 
@@ -86,7 +103,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     /**
      * Save any existing search data. Since the data is stored in ContentValues, which are already
      * parcelable, there is no additional work required.
-     * @param outState
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -98,7 +114,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     /**
      * Bind any saved search results to the search adapter to retain any previous scroll position
      * and ensure any previous search results remain.
-     * @param savedInstanceState
      */
     @Override
     public void onViewStateRestored(Bundle savedInstanceState) {
@@ -124,38 +139,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     }
 
     /**
-     * Bind the search *like* view controls
-     */
-    private void bindSearch() {
-
-        final LoaderManager.LoaderCallbacks<List<ContentValues>> self = this;
-
-        mSearchText.setOnEditorActionListener(new EditText.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    getLoaderManager().restartLoader(LOADER_ARTIST_SEARCH, null, self);
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        mCancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mSearchText.setText("");
-                mSearchIndicator.setImageResource(R.mipmap.ic_search_dark);
-                mSearchIndicator.clearAnimation();
-                mSearchInstructions.setVisibility(View.VISIBLE);
-                mListView.setVisibility(View.GONE);
-            }
-        });
-    }
-
-    /**
      * Initialize the loader
-     * @param savedInstanceState
      */
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -175,7 +159,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     @Override
     public Loader<List<ContentValues>> onCreateLoader(int id, Bundle args) {
         try {
-            String filter = mSearchText.getText().toString();
+            String filter = mSearchText.getQuery().toString();
             mImm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
 
             if (filter.length() > 0) {
@@ -194,7 +178,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
     @Override
     public void onLoadFinished(Loader<List<ContentValues>> loader, List<ContentValues> data) {
-        boolean hasFilter = mSearchText.getText().toString().length() > 0;
+        boolean hasFilter = mSearchText.getQuery().length() > 0;
         boolean hasData = data.size() > 0;
 
         if (!hasFilter && !hasData) {

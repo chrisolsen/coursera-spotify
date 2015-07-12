@@ -5,33 +5,12 @@
     android:orientation="vertical"
     tools:context=".ArtistSearchActivityFragment">
 
-    <FrameLayout
+    <android.support.v7.widget.SearchView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <EditText
-            android:id="@+id/artists_search_filter"
-            android:singleLine="true"
-            android:imeOptions="actionSearch"
-            android:hint="@string/artists_search_instructions"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dip"
-            android:padding="10dp" />
-
-        <ImageButton
-            android:id="@+id/artist_search_cancel"
-            android:layout_gravity="right|center_vertical"
-            android:src="@mipmap/ic_close_dark"
-            android:alpha="0.7"
-            android:background="@android:color/transparent"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:cropToPadding="false"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="5dp"
-            android:scaleType="fitCenter" />
-    </FrameLayout>
+        android:layout_height="wrap_content"
+        android:id="@+id/searchText"
+        android:layout_gravity="center"
+        android:padding="10dp" />
 
     <LinearLayout
         android:id="@+id/artists_search_instructions"
