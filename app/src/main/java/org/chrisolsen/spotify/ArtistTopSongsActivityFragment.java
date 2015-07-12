@@ -1,13 +1,12 @@
 package org.chrisolsen.spotify;
 
+import android.accounts.NetworkErrorException;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,19 +17,17 @@ import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import kaaes.spotify.webapi.android.SpotifyApi;
-import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Track;
-import kaaes.spotify.webapi.android.models.Tracks;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class ArtistTopSongsActivityFragment extends Fragment {
+public class ArtistTopSongsActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<ContentValues>> {
+
+    private String mArtistId;
+    private ListView mListView;
+    private ArtistTopSongsAdapter mAdapter;
 
     public ArtistTopSongsActivityFragment() { }
 
@@ -39,14 +36,15 @@ public class ArtistTopSongsActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.artist_top_songs_fragment, container, false);
+        mListView = (ListView)view.findViewById(android.R.id.list);
 
         // to fetch the data
         Intent intent = getActivity().getIntent();
         ContentValues artist = intent.getParcelableExtra("data");
 
+        mArtistId = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_ID);
         String imageUrl = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL);
         String artistName = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_NAME);
-        String artistId = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_ID);
 
         ImageView bgImage = (ImageView) view.findViewById(R.id.artist_image);
 
@@ -65,49 +63,42 @@ public class ArtistTopSongsActivityFragment extends Fragment {
             return null;
         }
 
-        new TopSongRequestTask().execute(artistId);
-
+        mAdapter = new ArtistTopSongsAdapter(getActivity(), R.layout.artist_top_songs_fragment, new ArrayList<ContentValues>());
+        mListView.setAdapter(mAdapter);
         return view;
     }
 
-    private void bindList(List<Track> tracks) {
-        View parent = getView();
-        View noResults = parent.findViewById(android.R.id.empty);
-        ListView listView = (ListView)parent.findViewById(android.R.id.list);
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-        noResults.setVisibility(tracks.size() > 0 ? View.GONE : View.VISIBLE);
-
-        ArtistTopSongsAdapter adapter = new ArtistTopSongsAdapter(getActivity(), R.layout.artist_top_songs_fragment, tracks);
-        listView.setAdapter(adapter);
+        getLoaderManager().initLoader(0, null, this);
     }
 
-    private class TopSongRequestTask extends AsyncTask<String, Void, Tracks> {
-        SpotifyService spotify;
-
-        public TopSongRequestTask() {
-            SpotifyApi api = new SpotifyApi();
-            this.spotify = api.getService();
-
-            ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo info = cm.getActiveNetworkInfo();
-
-            if (info == null || !info.isConnected()) {
-                Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
-                this.cancel(true);
-            }
+    @Override
+    public Loader<List<ContentValues>> onCreateLoader(int id, Bundle args) {
+        try {
+            return new ArtistTopSongsLoader(getActivity(), mArtistId);
+        } catch (NetworkErrorException e) {
+            Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
+            return null;
         }
+    }
 
-        @Override
-        protected Tracks doInBackground(String... params) {
-            String artistId = params[0];
-            Map<String, Object> query = new HashMap<>();
-            query.put("country", "ca");
-            return spotify.getArtistTopTrack(artistId, query);
-        }
+    @Override
+    public void onLoadFinished(Loader<List<ContentValues>> loader, List<ContentValues> data) {
 
-        @Override
-        protected void onPostExecute(Tracks data) {
-            bindList(data.tracks);
-        }
+        // TODO: holder on to a reference to the returned data to save the instance state in stage 2
+        // when we are able to drill into the song
+
+        mAdapter.clear();
+        mAdapter.addAll(data);
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<ContentValues>> loader) {
+        mAdapter.clear();
+        mAdapter.notifyDataSetChanged();
     }
 }
