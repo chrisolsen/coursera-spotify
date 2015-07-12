@@ -74,7 +74,6 @@
             android:text="@string/artists_no_results"/>
     </LinearLayout>
 
-
     <ListView
         android:id="@android:id/list"
         android:layout_width="match_parent"

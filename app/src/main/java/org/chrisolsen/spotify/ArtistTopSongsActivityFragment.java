@@ -1,5 +1,6 @@
 package org.chrisolsen.spotify;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -30,14 +31,6 @@ import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 
 /**
- * TODOS
- * - make api request for data
- * - create list item view
- * - create the list adapter
- * - create async task
- */
-
-/**
  * A placeholder fragment containing a simple view.
  */
 public class ArtistTopSongsActivityFragment extends Fragment {
@@ -50,13 +43,13 @@ public class ArtistTopSongsActivityFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.artist_top_songs_fragment, container, false);
 
-        // perform api request
-        // FIXME: pass in a uri instead of individual values and use the content provider
         // to fetch the data
         Intent intent = getActivity().getIntent();
-        String artistId = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_ID);
-        String artistName = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_NAME);
-        String imageUrl = intent.getStringExtra(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL);
+        ContentValues artist = intent.getParcelableExtra("data");
+
+        String imageUrl = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL);
+        String artistName = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_NAME);
+        String artistId = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_ID);
 
         ImageView bgImage = (ImageView) view.findViewById(R.id.artist_image);
 
@@ -128,8 +121,10 @@ public class ArtistTopSongsActivityFragment extends Fragment {
                 imageUrl = null;
             }
 
-            Picasso p = Picasso.with(getContext());
-            p.load(imageUrl).into(imageView);
+            if (imageUrl != null) {
+                Picasso p = Picasso.with(getContext());
+                p.load(imageUrl).into(imageView);
+            }
 
             return view;
         }
