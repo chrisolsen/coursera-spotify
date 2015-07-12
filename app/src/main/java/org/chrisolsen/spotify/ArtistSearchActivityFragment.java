@@ -4,6 +4,8 @@ import android.accounts.NetworkErrorException;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
@@ -65,7 +67,11 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         mSearchText.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                getLoaderManager().restartLoader(LOADER_ARTIST_SEARCH, null, loaderCallback);
+                if (hasNetworkAccess()) {
+                    getLoaderManager().restartLoader(LOADER_ARTIST_SEARCH, null, loaderCallback);
+                } else {
+                    Toast.makeText(context, R.string.no_internet, Toast.LENGTH_SHORT).show();
+                }
                 return true;
             }
 
@@ -173,6 +179,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         } catch (NetworkErrorException e) {
             Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
             mSearchInstructions.setVisibility(View.GONE);
+
             return null;
         }
     }
@@ -211,6 +218,17 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     public void onLoaderReset(Loader<List<ContentValues>> loader) {
         mArtistSearchAdapter.clear();
         mArtistSearchAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * Helper method to whether a network is available
+     * @return boolean
+     */
+    private boolean hasNetworkAccess() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+
+        return info != null && info.isConnected();
     }
 
 }
