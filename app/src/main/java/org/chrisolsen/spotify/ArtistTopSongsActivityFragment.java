@@ -3,6 +3,7 @@ package org.chrisolsen.spotify;
 import android.accounts.NetworkErrorException;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -39,6 +41,18 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
         View view = inflater.inflate(R.layout.artist_top_songs_fragment, container, false);
         mListView = (ListView)view.findViewById(android.R.id.list);
         mNoResults = view.findViewById(android.R.id.empty);
+
+        // resize the image down when in landscape mode.
+        // FIXME: This will probably not be need on tablets in stage 2
+        boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        int nonScaledheight = isLandscape ? 120 : 200;
+        int scaledHeight = (int)(getResources().getDisplayMetrics().density * nonScaledheight + 0.5);
+
+        ImageView img = (ImageView) view.findViewById(R.id.artist_image);
+        img.setLayoutParams(new LinearLayout.LayoutParams(
+                getResources().getDisplayMetrics().widthPixels,
+                scaledHeight
+        ));
 
         // to fetch the data
         Intent intent = getActivity().getIntent();
