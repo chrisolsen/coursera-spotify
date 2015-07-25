@@ -7,7 +7,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
-public class ArtistSearchActivity extends AppCompatActivity {
+public class ArtistSearchActivity extends AppCompatActivity implements ArtistSearchActivityFragment.ArtistSelectionHandler {
 
     private final String LOG_TAG = this.getClass().getSimpleName();
     private String mCurrentArtistId;
@@ -34,7 +34,7 @@ public class ArtistSearchActivity extends AppCompatActivity {
      * Method called by a child fragment to load the details based on the current screen.
      * @param artist
      */
-    protected void handleArtistSelection(ContentValues artist, String selectedArtistId) {
+    public void handleArtistSelection(ContentValues artist, String selectedArtistId) {
         if (isTwoPane()) {
             loadDetailsFragment(artist, selectedArtistId);
         } else {

@@ -28,6 +28,10 @@ import java.util.List;
 
 public class ArtistSearchActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<ContentValues>> {
 
+    protected interface ArtistSelectionHandler {
+        void handleArtistSelection(ContentValues artist, String artistId);
+    }
+
     private final String LOG_TAG = this.getClass().getSimpleName();
     private static final int LOADER_ARTIST_SEARCH = 0;
 
@@ -89,8 +93,8 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ContentValues artist = (ContentValues) mListView.getAdapter().getItem(position);
-                ArtistSearchActivity parentActivity = (ArtistSearchActivity) getActivity();
-                parentActivity.handleArtistSelection(artist, artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_ID));
+                ArtistSelectionHandler handler = (ArtistSelectionHandler) getActivity();
+                handler.handleArtistSelection(artist, artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_ID));
             }
         });
 
