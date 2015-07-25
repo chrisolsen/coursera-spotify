@@ -6,12 +6,18 @@
     tools:context=".ArtistSearchActivityFragment"
     tools:showIn="@layout/artist_search_activity">
 
-    <android.support.v7.widget.SearchView
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="?android:attr/listPreferredItemHeight"
-        android:id="@+id/searchText"
-        android:gravity="center_horizontal|bottom" />
+        android:layout_marginBottom="1px"
+        android:layout_height="?android:attr/listPreferredItemHeight">
 
+        <android.support.v7.widget.SearchView
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/listPreferredItemHeight"
+            android:id="@+id/searchText"
+            android:gravity="center_horizontal|bottom" />
+
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/artists_search_instructions"
@@ -43,6 +49,8 @@
 
     <ListView
         android:id="@android:id/list"
+        android:choiceMode="singleChoice"
+        android:listSelector="@color/color_accent"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

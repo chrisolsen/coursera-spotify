@@ -1,9 +1,9 @@
 package org.chrisolsen.spotify;
 
 import android.accounts.NetworkErrorException;
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -45,9 +45,11 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        final Context context = getActivity();
+        final Activity context = getActivity();
         final LoaderManager.LoaderCallbacks<List<ContentValues>> loaderCallback = this;
         View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
+
+        // TODO: move the search box into the activity and actionbar
 
         // views
         mListView = (ListView)layout.findViewById(android.R.id.list);
@@ -77,13 +79,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                if (newText == null || newText.length() == 0) {
-                    mSearchInstructions.setVisibility(View.GONE);
-                    mListView.setVisibility(View.GONE);
-                    mNoResults.setVisibility(View.GONE); // in case the clear happened after no results were returned
-
-                    return true;
-                }
                 return false;
             }
         });
@@ -94,11 +89,8 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ContentValues artist = (ContentValues) mListView.getAdapter().getItem(position);
-
-                Intent intent = new Intent(context, ArtistTopSongsActivity.class);
-                intent.putExtra("data", artist);
-
-                startActivity(intent);
+                ArtistSearchActivity parentActivity = (ArtistSearchActivity) getActivity();
+                parentActivity.handleArtistSelection(artist, artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_ID));
             }
         });
 
@@ -147,20 +139,15 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     }
 
     /**
-     * Initialize the loader
+     * Setup after activity is available
      */
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        LoaderManager lm = getLoaderManager();
+        initLoaderManager();
 
-        // no idea why this *if* is needed, but if this check is not added coming back to this
-        // fragment from the artist detail will not bind the existing list data.
-        if (lm.getLoader(LOADER_ARTIST_SEARCH) != null) {
-            lm.initLoader(LOADER_ARTIST_SEARCH, null, this);
-        }
-
+        // prevent this fragment from having to be recreated when coming back from artist details
         setRetainInstance(true);
     }
 
@@ -229,6 +216,19 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         NetworkInfo info = connectivityManager.getActiveNetworkInfo();
 
         return info != null && info.isConnected();
+    }
+
+    /**
+     * Initialize the loader manager
+     */
+    private void initLoaderManager() {
+        LoaderManager lm = getLoaderManager();
+
+        // no idea why this *if* is needed, but if this check is not added coming back to this
+        // fragment from the artist detail will not bind the existing list data.
+        if (lm.getLoader(LOADER_ARTIST_SEARCH) != null) {
+            lm.initLoader(LOADER_ARTIST_SEARCH, null, this);
+        }
     }
 
 }

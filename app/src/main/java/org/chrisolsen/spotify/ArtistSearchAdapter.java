@@ -64,6 +64,7 @@ public class ArtistSearchAdapter extends ArrayAdapter<ContentValues> {
         ContentValues artist = getItem(position);
 
         // artist attributes
+        String id = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_ID);
         String name = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_NAME);
         String imageUrl = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL);
 

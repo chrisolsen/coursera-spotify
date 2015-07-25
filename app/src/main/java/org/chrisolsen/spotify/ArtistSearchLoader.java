@@ -46,7 +46,7 @@ public class ArtistSearchLoader extends AsyncTaskLoader<List<ContentValues>> {
     @Override
     protected void onStartLoading() {
         super.onStartLoading();
-        forceLoad();
+        forceLoad();  // ...why was this required again??
     }
 
     @Override

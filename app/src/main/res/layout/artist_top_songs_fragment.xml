@@ -5,13 +5,6 @@
     android:orientation="vertical"
     tools:context="org.chrisolsen.spotify.ArtistTopSongsActivityFragment">
 
-    <ImageView
-        android:id="@+id/artist_image"
-        android:scaleType="centerCrop"
-        tools:src="@drawable/foofighters"
-        android:layout_width="match_parent"
-        android:layout_height="200dp" />
-
     <TextView
         android:id="@android:id/empty"
         android:layout_width="match_parent"
@@ -19,6 +12,7 @@
         android:textSize="@dimen/font_size_medium"
         android:gravity="center"
         android:visibility="gone"
+        tools:text="@string/top_ten_no_results"
         android:text="@string/top_ten_no_results"/>
 
     <ListView
