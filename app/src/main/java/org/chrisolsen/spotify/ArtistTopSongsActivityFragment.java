@@ -2,6 +2,7 @@ package org.chrisolsen.spotify;
 
 import android.accounts.NetworkErrorException;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -10,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -57,6 +59,15 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
             Toast.makeText(this.getActivity(), "An error occurred", Toast.LENGTH_SHORT).show();
             return null;
         }
+
+        mListView.setOnItemClickListener(new ListView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent i = new Intent(getActivity(), SongPlayerActivity.class);
+                // i.putExtra("data", null);
+                startActivity(i);
+            }
+        });
 
         mAdapter = new ArtistTopSongsAdapter(getActivity(), R.layout.artist_top_songs_fragment, new ArrayList<ContentValues>());
         mListView.setAdapter(mAdapter);

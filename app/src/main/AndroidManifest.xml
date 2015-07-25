@@ -3,7 +3,7 @@
     package="org.chrisolsen.spotify" >
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -19,7 +19,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
         <activity
             android:name=".ArtistTopSongsActivity"
@@ -29,7 +28,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ArtistSearchActivity" />
         </activity>
-
+        <activity
+            android:name=".SongPlayerActivity"
+            android:theme="@style/Theme.AppCompat.Light.Dialog"
+            android:label="@string/title_activity_song_player" >
+        </activity>
     </application>
 
 </manifest>
