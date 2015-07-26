@@ -5,6 +5,7 @@
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
+    android:background="@drawable/list_selector"
     android:orientation="horizontal"
     android:gravity="center_vertical">
 
@@ -12,7 +13,7 @@
         android:id="@+id/artist_image"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        tools:src="@mipmap/no_photo" />
+        tools:src="@mipmap/ic_no_photo" />
 
     <TextView
         android:id="@+id/artist_name"

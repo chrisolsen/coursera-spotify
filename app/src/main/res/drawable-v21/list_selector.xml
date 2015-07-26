@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <ripple android:color="@color/color_accent"/>
+    </item>
+
+    <item android:state_activated="true" android:drawable="@color/color_list_view_selected"/>
+
+    <item android:drawable="@android:color/transparent" />
+</selector>
