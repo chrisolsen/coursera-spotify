@@ -1,7 +1,6 @@
 package org.chrisolsen.spotify;
 
 import android.accounts.NetworkErrorException;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -29,6 +28,10 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
     private View mNoResults;
 
     public ArtistTopSongsActivityFragment() {}
+
+    public interface SongSelectHandler {
+        void handleSongSelection(Song s);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,16 +69,14 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Song song = (Song)mListView.getAdapter().getItem(position);
-
-                Intent i = new Intent(getActivity(), SongPlayerActivity.class);
-                i.putExtra("data", song);
-
-                startActivity(i);
+                SongSelectHandler handler = (SongSelectHandler)getActivity();
+                handler.handleSongSelection(song);
             }
         });
 
         mAdapter = new ArtistTopSongsAdapter(getActivity(), R.layout.artist_top_songs_fragment, new ArrayList<Song>());
         mListView.setAdapter(mAdapter);
+
         return view;
     }
 

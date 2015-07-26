@@ -1,0 +1,26 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="org.chrisolsen.spotify.ArtistTopSongsActivityFragment">
+
+    <FrameLayout
+        android:id="@+id/song_player_fragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@android:id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textSize="@dimen/font_size_medium"
+        android:gravity="center"
+        android:visibility="gone"
+        tools:text="@string/top_ten_no_results"
+        android:text="@string/top_ten_no_results"/>
+
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</FrameLayout>

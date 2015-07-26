@@ -6,7 +6,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
-public class ArtistSearchActivity extends AppCompatActivity implements ArtistSearchActivityFragment.ArtistSelectionHandler {
+public class ArtistSearchActivity
+        extends AppCompatActivity
+        implements ArtistSearchActivityFragment.ArtistSelectionHandler,
+        ArtistTopSongsActivityFragment.SongSelectHandler {
 
     private final String LOG_TAG = this.getClass().getSimpleName();
     private String mCurrentArtistId;
@@ -41,6 +44,21 @@ public class ArtistSearchActivity extends AppCompatActivity implements ArtistSea
         }
     }
 
+    @Override
+    public void handleSongSelection(Song song) {
+        FragmentManager mgr = getSupportFragmentManager();
+        SongPlayerActivityFragment frag = SongPlayerActivityFragment.newInstance(song);
+
+        if (isTwoPane()) {
+            frag.show(mgr, "song");
+        } else {
+            Intent i = new Intent(this, SongPlayerActivity.class);
+            i.putExtra("data", song);
+            startActivity(i);
+        }
+    }
+
+
     /**
      * Loads the artist details fragment into the current activity
      */
@@ -63,8 +81,6 @@ public class ArtistSearchActivity extends AppCompatActivity implements ArtistSea
         }
 
         ft.replace(R.id.top_songs_container, frag);
-        ft.addToBackStack(null);
-
         ft.commit();
     }
 

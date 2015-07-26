@@ -29,8 +29,10 @@
                 android:value=".ArtistSearchActivity" />
         </activity>
         <activity
-            android:name=".SongPlayerActivity"
-            android:theme="@style/AppTheme.NoTitle">
+            android:name=".SongPlayerActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ArtistTopSongsActivity" />
         </activity>
     </application>
 
