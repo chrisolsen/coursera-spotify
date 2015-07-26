@@ -23,8 +23,7 @@
         <activity
             android:name=".ArtistTopSongsActivity"
             android:launchMode="singleTop"
-            android:parentActivityName=".ArtistSearchActivity"
-            android:theme="@style/AppTheme.TransparentActionBar" >
+            android:parentActivityName=".ArtistSearchActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ArtistSearchActivity" />
