@@ -1,7 +1,6 @@
 package org.chrisolsen.spotify;
 
 import android.accounts.NetworkErrorException;
-import android.content.ContentValues;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -17,7 +16,7 @@ import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
 
-public class ArtistSearchLoader extends AsyncTaskLoader<List<ContentValues>> {
+public class ArtistSearchLoader extends AsyncTaskLoader<List<org.chrisolsen.spotify.Artist>> {
 
     private final String LOG_TAG = this.getClass().getSimpleName();
     private final String mSearchText;
@@ -50,8 +49,8 @@ public class ArtistSearchLoader extends AsyncTaskLoader<List<ContentValues>> {
     }
 
     @Override
-    public List<ContentValues> loadInBackground() {
-        Vector<ContentValues> artists = new Vector<>();
+    public List<org.chrisolsen.spotify.Artist> loadInBackground() {
+        Vector<org.chrisolsen.spotify.Artist> artists = new Vector<>();
         ArtistsPager results;
 
         // return empty list for empty search
@@ -66,10 +65,10 @@ public class ArtistSearchLoader extends AsyncTaskLoader<List<ContentValues>> {
         }
 
         for (Artist a : results.artists.items) {
-            ContentValues vals = new ContentValues();
+            org.chrisolsen.spotify.Artist vals = new org.chrisolsen.spotify.Artist();
 
-            vals.put(ArtistsContract.ArtistEntry.COLUMN_ID, a.id);
-            vals.put(ArtistsContract.ArtistEntry.COLUMN_NAME, a.name);
+            vals.artistId = a.id;
+            vals.name = a.name;
 
             // get the largest image url
             String imageUrl = null; // default value
@@ -81,7 +80,7 @@ public class ArtistSearchLoader extends AsyncTaskLoader<List<ContentValues>> {
                 }
             }
 
-            vals.put(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL, imageUrl);
+            vals.imageUrl = imageUrl;
 
             artists.add(vals);
         }

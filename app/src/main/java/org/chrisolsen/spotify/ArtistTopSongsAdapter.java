@@ -1,6 +1,5 @@
 package org.chrisolsen.spotify;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,8 +15,8 @@ import java.util.List;
 /**
  * Provides the binding of the data and custom view
  */
-public class ArtistTopSongsAdapter extends ArrayAdapter<ContentValues> {
-    public ArtistTopSongsAdapter(Context context, int resource, List<ContentValues> objects) {
+public class ArtistTopSongsAdapter extends ArrayAdapter<Song> {
+    public ArtistTopSongsAdapter(Context context, int resource, List<Song> objects) {
         super(context, resource, objects);
     }
 
@@ -29,9 +28,6 @@ public class ArtistTopSongsAdapter extends ArrayAdapter<ContentValues> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ImageView imageView;
-        TextView albumNameView;
-        TextView songNameView;
         String imageUrl;
         ViewHolder holder;
 
@@ -47,13 +43,13 @@ public class ArtistTopSongsAdapter extends ArrayAdapter<ContentValues> {
             view.setTag(holder);
         }
 
-        ContentValues track = getItem(position);
+        Song song = getItem(position);
 
         holder = (ViewHolder) view.getTag();
-        holder.albumNameView.setText(track.getAsString("albumName"));
-        holder.songNameView.setText(track.getAsString("songName"));
+        holder.albumNameView.setText(song.album.name);
+        holder.songNameView.setText(song.name);
 
-        imageUrl = track.getAsString("imageUrl");
+        imageUrl = song.album.imageUrl;
         if (imageUrl != null) {
             Picasso p = Picasso.with(getContext());
             p.load(imageUrl).into(holder.imageView);

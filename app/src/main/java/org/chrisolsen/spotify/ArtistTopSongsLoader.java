@@ -1,7 +1,6 @@
 package org.chrisolsen.spotify;
 
 import android.accounts.NetworkErrorException;
-import android.content.ContentValues;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -18,7 +17,7 @@ import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 
-public class ArtistTopSongsLoader extends AsyncTaskLoader<List<ContentValues>> {
+public class ArtistTopSongsLoader extends AsyncTaskLoader<List<Song>> {
 
     String mArtistId;
 
@@ -42,20 +41,23 @@ public class ArtistTopSongsLoader extends AsyncTaskLoader<List<ContentValues>> {
     }
 
     @Override
-    public List<ContentValues> loadInBackground() {
+    public List<Song> loadInBackground() {
         SpotifyApi api = new SpotifyApi();
         SpotifyService spotify = api.getService();
 
         Map<String, Object> query = new HashMap<>();
         query.put("country", "ca");  // TODO: make this a preference setting
+
         Tracks tracks = spotify.getArtistTopTrack(mArtistId, query);
 
-        List<ContentValues> data = new ArrayList<>(tracks.tracks.size());
+        List<Song> songs = new ArrayList<>(tracks.tracks.size());
         for (Track t : tracks.tracks) {
-            ContentValues vals = new ContentValues();
+            Song song = new Song();
+            song.album = new Album();
+            song.album.artist = new Artist();
 
-            vals.put("albumName", t.album.name);
-            vals.put("songName", t.name);
+            song.album.name = t.album.name;
+            song.name = t.name;
 
             String imageUrl;
             List<Image> images = t.album.images;
@@ -66,11 +68,11 @@ public class ArtistTopSongsLoader extends AsyncTaskLoader<List<ContentValues>> {
             } else {
                 imageUrl = null;
             }
-            vals.put("imageUrl", imageUrl);
+            song.album.imageUrl = imageUrl;
 
-            data.add(vals);
+            songs.add(song);
         }
 
-        return data;
+        return songs;
     }
 }

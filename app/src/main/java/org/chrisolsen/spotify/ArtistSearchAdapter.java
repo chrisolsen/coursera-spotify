@@ -1,6 +1,5 @@
 package org.chrisolsen.spotify;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,11 +13,11 @@ import com.squareup.picasso.RequestCreator;
 
 import java.util.List;
 
-public class ArtistSearchAdapter extends ArrayAdapter<ContentValues> {
+public class ArtistSearchAdapter extends ArrayAdapter<Artist> {
 
     private final Context mContext;
 
-    public ArtistSearchAdapter(Context context, List<ContentValues> artists) {
+    public ArtistSearchAdapter(Context context, List<Artist> artists) {
         super(context, 0, artists);
         mContext = context;
     }
@@ -61,16 +60,11 @@ public class ArtistSearchAdapter extends ArrayAdapter<ContentValues> {
         Picasso p = Picasso.with(mContext);
         RequestCreator rc;
         holder = (ViewHolder)view.getTag();
-        ContentValues artist = getItem(position);
-
-        // artist attributes
-        String id = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_ID);
-        String name = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_NAME);
-        String imageUrl = artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_IMAGE_URL);
+        Artist artist = getItem(position);
 
         // bind
-        holder.name.setText(name);
-        rc = imageUrl == null ? p.load(R.mipmap.ic_no_photo) : p.load(imageUrl);
+        holder.name.setText(artist.name);
+        rc = artist.imageUrl == null ? p.load(R.mipmap.ic_no_photo) : p.load(artist.imageUrl);
         rc.into(holder.image);
 
         return view;

@@ -2,7 +2,6 @@ package org.chrisolsen.spotify;
 
 import android.accounts.NetworkErrorException;
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -26,10 +25,10 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArtistSearchActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<ContentValues>> {
+public class ArtistSearchActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Artist>> {
 
     protected interface ArtistSelectionHandler {
-        void handleArtistSelection(ContentValues artist, String artistId);
+        void handleArtistSelection(Artist artist);
     }
 
     private final String LOG_TAG = this.getClass().getSimpleName();
@@ -43,14 +42,14 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     private View mSearchInstructions;
     private InputMethodManager mImm;
 
-    private ContentValues[] mSearchResults;
+    private Artist[] mSearchResults;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         final Activity context = getActivity();
-        final LoaderManager.LoaderCallbacks<List<ContentValues>> loaderCallback = this;
+        final LoaderManager.LoaderCallbacks<List<Artist>> loaderCallback = this;
         View layout = inflater.inflate(R.layout.artist_search_fragment, container, false);
 
         // TODO: move the search box into the activity and actionbar
@@ -92,21 +91,20 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         mListView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ContentValues artist = (ContentValues) mListView.getAdapter().getItem(position);
+                Artist artist = (Artist) mListView.getAdapter().getItem(position);
                 ArtistSelectionHandler handler = (ArtistSelectionHandler) getActivity();
-                handler.handleArtistSelection(artist, artist.getAsString(ArtistsContract.ArtistEntry.COLUMN_ID));
+                handler.handleArtistSelection(artist);
             }
         });
 
-        mArtistSearchAdapter = new ArtistSearchAdapter(getActivity(), new ArrayList<ContentValues>());
+        mArtistSearchAdapter = new ArtistSearchAdapter(getActivity(), new ArrayList<Artist>());
         mListView.setAdapter(mArtistSearchAdapter);
 
         return layout;
     }
 
     /**
-     * Save any existing search data. Since the data is stored in ContentValues, which are already
-     * parcelable, there is no additional work required.
+     * Save any existing search data
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -128,11 +126,12 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         Parcelable[] data = savedInstanceState.getParcelableArray("searchResults");
         if (data == null) return;
 
-        // convert to simple array
-        mSearchResults = new ContentValues[data.length];
-        for (int i = 0; i < data.length; i++) {
-            mSearchResults[i] = (ContentValues)data[i];
-        }
+        mSearchResults = (Artist[]) data;
+//        // convert to simple array
+//        mSearchResults = new Artist[data.length];
+//        for (int i = 0; i < data.length; i++) {
+//            mSearchResults[i] = (Artist)data[i];
+//        }
 
         // bind data
         mArtistSearchAdapter.clear();
@@ -156,7 +155,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     }
 
     @Override
-    public Loader<List<ContentValues>> onCreateLoader(int id, Bundle args) {
+    public Loader<List<Artist>> onCreateLoader(int id, Bundle args) {
         try {
             String filter = mSearchText.getQuery().toString();
             mImm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
@@ -176,7 +175,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     }
 
     @Override
-    public void onLoadFinished(Loader<List<ContentValues>> loader, List<ContentValues> data) {
+    public void onLoadFinished(Loader<List<Artist>> loader, List<Artist> data) {
         boolean hasFilter = mSearchText.getQuery().length() > 0;
         boolean hasData = data.size() > 0;
 
@@ -196,7 +195,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         }
 
         // save a reference to the data to allow saving of the state
-        mSearchResults = new ContentValues[data.size()];
+        mSearchResults = new Artist[data.size()];
         data.toArray(mSearchResults);
 
         // make new data visible in the list
@@ -206,7 +205,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
     }
 
     @Override
-    public void onLoaderReset(Loader<List<ContentValues>> loader) {
+    public void onLoaderReset(Loader<List<Artist>> loader) {
         mArtistSearchAdapter.clear();
         mArtistSearchAdapter.notifyDataSetChanged();
     }

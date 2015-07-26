@@ -1,6 +1,5 @@
 package org.chrisolsen.spotify;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -18,7 +17,7 @@ public class ArtistSearchActivity extends AppCompatActivity implements ArtistSea
         setContentView(R.layout.artist_search_activity);
 
         if (isTwoPane() && savedInstanceState == null) {
-            loadDetailsFragment(null, "");
+            loadDetailsFragment(null);
         }
     }
 
@@ -34,9 +33,9 @@ public class ArtistSearchActivity extends AppCompatActivity implements ArtistSea
      * Method called by a child fragment to load the details based on the current screen.
      * @param artist
      */
-    public void handleArtistSelection(ContentValues artist, String selectedArtistId) {
+    public void handleArtistSelection(Artist artist) {
         if (isTwoPane()) {
-            loadDetailsFragment(artist, selectedArtistId);
+            loadDetailsFragment(artist);
         } else {
             openDetailsActivity(artist);
         }
@@ -45,12 +44,12 @@ public class ArtistSearchActivity extends AppCompatActivity implements ArtistSea
     /**
      * Loads the artist details fragment into the current activity
      */
-    private void loadDetailsFragment(ContentValues artist, String selectedArtistId) {
-        if (mCurrentArtistId == selectedArtistId) {
+    private void loadDetailsFragment(Artist artist) {
+        if (artist == null || mCurrentArtistId == artist.artistId) {
             return;
         }
 
-        mCurrentArtistId = selectedArtistId;
+        mCurrentArtistId = artist.artistId;
 
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
@@ -72,7 +71,7 @@ public class ArtistSearchActivity extends AppCompatActivity implements ArtistSea
     /**
      * Opens the details activity
      */
-    private void openDetailsActivity(ContentValues artist) {
+    private void openDetailsActivity(Artist artist) {
         Intent intent = new Intent(this, ArtistTopSongsActivity.class);
         intent.putExtra("data", artist);
         startActivity(intent);
