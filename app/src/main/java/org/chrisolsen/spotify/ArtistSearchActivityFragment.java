@@ -127,11 +127,6 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         if (data == null) return;
 
         mSearchResults = (Artist[]) data;
-//        // convert to simple array
-//        mSearchResults = new Artist[data.length];
-//        for (int i = 0; i < data.length; i++) {
-//            mSearchResults[i] = (Artist)data[i];
-//        }
 
         // bind data
         mArtistSearchAdapter.clear();

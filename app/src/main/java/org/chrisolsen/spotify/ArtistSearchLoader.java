@@ -65,10 +65,10 @@ public class ArtistSearchLoader extends AsyncTaskLoader<List<org.chrisolsen.spot
         }
 
         for (Artist a : results.artists.items) {
-            org.chrisolsen.spotify.Artist vals = new org.chrisolsen.spotify.Artist();
+            org.chrisolsen.spotify.Artist artist = new org.chrisolsen.spotify.Artist();
 
-            vals.artistId = a.id;
-            vals.name = a.name;
+            artist.artistId = a.id;
+            artist.name = a.name;
 
             // get the largest image url
             String imageUrl = null; // default value
@@ -80,9 +80,9 @@ public class ArtistSearchLoader extends AsyncTaskLoader<List<org.chrisolsen.spot
                 }
             }
 
-            vals.imageUrl = imageUrl;
+            artist.imageUrl = imageUrl;
 
-            artists.add(vals);
+            artists.add(artist);
         }
 
         return new ArrayList<>(artists);

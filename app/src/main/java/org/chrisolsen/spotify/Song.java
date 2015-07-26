@@ -9,6 +9,7 @@ public class Song implements Parcelable {
     String songId, name;
 
     public Song() {
+        album = new Album();
     }
 
     @Override

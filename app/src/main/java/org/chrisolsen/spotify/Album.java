@@ -8,6 +8,7 @@ public class Album implements Parcelable {
     String albumId, name, imageUrl;
 
     public Album() {
+        artist = new Artist();
     }
 
     @Override

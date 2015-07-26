@@ -53,9 +53,6 @@ public class ArtistTopSongsLoader extends AsyncTaskLoader<List<Song>> {
         List<Song> songs = new ArrayList<>(tracks.tracks.size());
         for (Track t : tracks.tracks) {
             Song song = new Song();
-            song.album = new Album();
-            song.album.artist = new Artist();
-
             song.album.artist.name = t.artists.get(0).name;
             song.album.name = t.album.name;
             song.name = t.name;
