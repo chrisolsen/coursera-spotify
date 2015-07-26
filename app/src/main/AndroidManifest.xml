@@ -30,8 +30,7 @@
         </activity>
         <activity
             android:name=".SongPlayerActivity"
-            android:theme="@style/Theme.AppCompat.Light.Dialog"
-            android:label="@string/title_activity_song_player" >
+            android:theme="@style/AppTheme.NoTitle">
         </activity>
     </application>
 

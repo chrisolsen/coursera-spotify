@@ -56,18 +56,19 @@ public class ArtistTopSongsLoader extends AsyncTaskLoader<List<Song>> {
             song.album = new Album();
             song.album.artist = new Artist();
 
+            song.album.artist.name = t.artists.get(0).name;
             song.album.name = t.album.name;
             song.name = t.name;
 
-            String imageUrl;
-            List<Image> images = t.album.images;
-            if (images.size() >= 2) {
-                imageUrl = images.get(1).url; // 200px
-            } else if (images.size() == 1) {
-                imageUrl = images.get(0).url; // 64px
-            } else {
-                imageUrl = null;
+            String imageUrl = t.album.images.get(0).url;
+            int maxSize = 0;
+            for(Image image : t.album.images) {
+                if (image.width > maxSize) {
+                    imageUrl = image.url;
+                    maxSize = image.width;
+                }
             }
+
             song.album.imageUrl = imageUrl;
 
             songs.add(song);

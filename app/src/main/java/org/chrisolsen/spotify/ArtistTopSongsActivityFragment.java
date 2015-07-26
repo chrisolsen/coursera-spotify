@@ -65,20 +65,9 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
         mListView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Song song = (Song)mListView.getAdapter().getItem(position);
+
                 Intent i = new Intent(getActivity(), SongPlayerActivity.class);
-
-                Artist artist = new Artist();
-                artist.name = "Foo Fighters";
-
-                Album album = new Album();
-                album.name = "The Color and the Shape";
-                album.artist = artist;
-                album.imageUrl = "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQ_odd-OyJW4kouOcN21SKsshvLSrtg_HOAUAZpycdxshi1xFE16Q";
-
-                Song song = new Song();
-                song.name = "Monkey Wrench";
-                song.album = album;
-
                 i.putExtra("data", song);
 
                 startActivity(i);
