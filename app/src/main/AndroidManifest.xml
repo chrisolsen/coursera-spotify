@@ -22,6 +22,7 @@
         </activity>
         <activity
             android:name=".ArtistTopSongsActivity"
+            android:launchMode="singleTop"
             android:parentActivityName=".ArtistSearchActivity"
             android:theme="@style/AppTheme.TransparentActionBar" >
             <meta-data

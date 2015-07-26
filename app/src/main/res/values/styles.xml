@@ -6,19 +6,12 @@
         <item name="colorAccent">@color/color_accent</item>
     </style>
 
-    <style name="AppTheme.NoTitle" parent="Base.Theme.AppCompat.Light.Dialog">
-        <item name="android:windowTitleStyle">@style/noTitle</item>
-    </style>
-    <style name="noTitle">
-        <item name="android:visibility">gone</item>
-    </style>
-
     <style name="AppTheme.TransparentActionBar">
         <item name="colorPrimary">@color/transparent_black</item>
         <item name="colorPrimaryDark">@color/transparent_black_dark</item>
         <item name="colorAccent">@color/color_accent</item>
     </style>
 
-    <color name="transparent_black_dark">#000000</color>
+    <color name="transparent_black_dark">#55000000</color>
     <color name="transparent_black">#55000000</color>
 </resources>

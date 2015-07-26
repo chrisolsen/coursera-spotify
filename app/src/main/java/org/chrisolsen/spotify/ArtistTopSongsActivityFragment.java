@@ -2,6 +2,7 @@ package org.chrisolsen.spotify;
 
 import android.accounts.NetworkErrorException;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -16,9 +17,6 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A placeholder fragment containing a simple view.
- */
 public class ArtistTopSongsActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Song>> {
 
     private final String LOG_TAG = this.getClass().getSimpleName();
@@ -26,6 +24,8 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
     private ListView mListView;
     private ArtistTopSongsAdapter mAdapter;
     private View mNoResults;
+
+    private Song[] mSongs;
 
     public ArtistTopSongsActivityFragment() {}
 
@@ -36,7 +36,6 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         Artist artist;
         Bundle args = getArguments();
 
@@ -77,7 +76,27 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
         mAdapter = new ArtistTopSongsAdapter(getActivity(), R.layout.artist_top_songs_fragment, new ArrayList<Song>());
         mListView.setAdapter(mAdapter);
 
+        // restore the instance state.
+        // NOTE: this is done within the onCreateView due to the onViewStateRestored not being
+        // called until after the onCreateLoader is called, thereby not allowing for the http
+        // request to be skipped.
+        if (savedInstanceState != null && savedInstanceState.getParcelableArray("songs") != null) {
+            Parcelable[] p = savedInstanceState.getParcelableArray("songs");
+            Song[] songs = new Song[p.length];
+            for (int i = 0; i < p.length; i++) {
+                songs[i] = (Song)p[i];
+            }
+
+            bindSongs(songs);
+        }
+
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArray("songs", mSongs);
     }
 
     @Override
@@ -91,6 +110,7 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
     @Override
     public Loader<List<Song>> onCreateLoader(int id, Bundle args) {
         if (mArtistId == null) return null;
+        if (mSongs != null && mSongs.length > 0) return null;
 
         try {
             return new ArtistTopSongsLoader(getActivity(), mArtistId);
@@ -101,17 +121,24 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
     }
 
     @Override
-    public void onLoadFinished(Loader<List<Song>> loader, List<Song> data) {
+    public void onLoadFinished(Loader<List<Song>> loader, List<Song> songs) {
+        if (mSongs != null) return;
 
-        // TODO: holder on to a reference to the returned data to save the instance state in stage 2
-        // when we are able to drill into the song
+        Song[] songArr = new Song[songs.size()];
+        songs.toArray(songArr);
+        bindSongs(songArr);
+    }
 
-        boolean hasSongs = data.size() > 0;
+    private void bindSongs(Song[] songs) {
+        boolean hasSongs;
+
+        mSongs = songs;
+        hasSongs = songs.length > 0;
         mListView.setVisibility(hasSongs ? View.VISIBLE : View.GONE);
         mNoResults.setVisibility(hasSongs ? View.GONE : View.VISIBLE);
 
         mAdapter.clear();
-        mAdapter.addAll(data);
+        mAdapter.addAll(songs);
         mAdapter.notifyDataSetChanged();
     }
 

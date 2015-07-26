@@ -86,7 +86,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
             }
         });
 
-        
+
         // ListView select event
         mListView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
@@ -126,7 +126,10 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         Parcelable[] data = savedInstanceState.getParcelableArray("searchResults");
         if (data == null) return;
 
-        mSearchResults = (Artist[]) data;
+        mSearchResults = new Artist[data.length];
+        for (int i = 0; i < data.length; i++) {
+            mSearchResults[i] = (Artist)data[i];
+        }
 
         // bind data
         mArtistSearchAdapter.clear();
