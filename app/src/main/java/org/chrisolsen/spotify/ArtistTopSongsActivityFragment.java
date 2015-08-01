@@ -30,7 +30,7 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
     public ArtistTopSongsActivityFragment() {}
 
     public interface SongSelectHandler {
-        void handleSongSelection(Song s);
+        void handleSongSelection(Song[] songs, int playIndex);
     }
 
     @Override
@@ -67,9 +67,8 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
         mListView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Song song = (Song)mListView.getAdapter().getItem(position);
                 SongSelectHandler handler = (SongSelectHandler)getActivity();
-                handler.handleSongSelection(song);
+                handler.handleSongSelection(mSongs, position);
             }
         });
 
@@ -81,10 +80,10 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
         // called until after the onCreateLoader is called, thereby not allowing for the http
         // request to be skipped.
         if (savedInstanceState != null && savedInstanceState.getParcelableArray("songs") != null) {
-            Parcelable[] p = savedInstanceState.getParcelableArray("songs");
-            Song[] songs = new Song[p.length];
-            for (int i = 0; i < p.length; i++) {
-                songs[i] = (Song)p[i];
+            Parcelable[] data = savedInstanceState.getParcelableArray("songs");
+            Song[] songs = new Song[data.length];
+            for (int i = 0; i < data.length; i++) {
+                songs[i] = (Song)data[i];
             }
 
             bindSongs(songs);

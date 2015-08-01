@@ -6,6 +6,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
+// TODO: Add accessability to app https://www.udacity.com/course/viewer#!/c-ud853-nd/l-1623168625/e-1667758627/m-1667758629
+
 public class ArtistSearchActivity
         extends AppCompatActivity
         implements ArtistSearchActivityFragment.ArtistSelectionHandler,
@@ -45,19 +47,19 @@ public class ArtistSearchActivity
     }
 
     @Override
-    public void handleSongSelection(Song song) {
+    public void handleSongSelection(Song[] songs, int playIndex) {
         FragmentManager mgr = getSupportFragmentManager();
-        SongPlayerActivityFragment frag = SongPlayerActivityFragment.newInstance(song);
+        SongPlayerActivityFragment frag = SongPlayerActivityFragment.newInstance(songs, playIndex);
 
         if (isTwoPane()) {
             frag.show(mgr, "song");
         } else {
             Intent i = new Intent(this, SongPlayerActivity.class);
-            i.putExtra("data", song);
+            i.putExtra("songs", songs);
+            i.putExtra("playIndex", playIndex);
             startActivity(i);
         }
     }
-
 
     /**
      * Loads the artist details fragment into the current activity

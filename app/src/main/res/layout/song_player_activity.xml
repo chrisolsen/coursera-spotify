@@ -4,4 +4,4 @@
     android:name="org.chrisolsen.spotify.SongPlayerActivityFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:layout="@layout/fragment_song_player" />
+    tools:layout="@layout/song_player_fragment" />

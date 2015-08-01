@@ -27,9 +27,9 @@ public class ArtistTopSongsActivity
     }
 
     @Override
-    public void handleSongSelection(Song song) {
+    public void handleSongSelection(Song[] songs, int playIndex) {
         if (isTwoPane()) {
-            SongPlayerActivityFragment f = SongPlayerActivityFragment.newInstance(song);
+            SongPlayerActivityFragment f = SongPlayerActivityFragment.newInstance(songs, playIndex);
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.song_player_fragment, f)
@@ -39,7 +39,8 @@ public class ArtistTopSongsActivity
         }
 
         Intent i = new Intent(this, SongPlayerActivity.class);
-        i.putExtra("data", song);
+        i.putExtra("playIndex", playIndex);
+        i.putExtra("songs", songs);
         startActivity(i);
     }
 
