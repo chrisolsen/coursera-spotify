@@ -29,6 +29,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     ImageButton btnPrev, btnPlay, btnNext;
     ImageView imgAlbumImage;
     Song[] mPlaylist;
+    MediaPlayer mMediaPlayer;
     int mPlaylistIndex;
 
     @Override
@@ -130,17 +131,35 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
         // play song
         try {
-            MediaPlayer mp = new MediaPlayer();
-            mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mp.setDataSource(s.previewUrl);
-            mp.prepare();
-            mp.start();
+            if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                mMediaPlayer.stop();
+            }
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mMediaPlayer.setDataSource(s.previewUrl);
+            mMediaPlayer.prepareAsync();
+
+            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mMediaPlayer.start();
+                }
+            });
+
         } catch (IOException e) {
             e.printStackTrace();
             Context c = this.getActivity();
             Toast.makeText(c, c.getString(R.string.error_fetching_audio), Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        mMediaPlayer.release();
+        mMediaPlayer = null;
     }
 
     public void playNext() {
