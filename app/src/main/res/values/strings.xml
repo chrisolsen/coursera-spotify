@@ -12,4 +12,5 @@
     <string name="no_photo">No Photo Available</string>
     <string name="no_internet">No internet is available. Try again later.</string>
     <string name="title_activity_song_player">SongPlayerActivity</string>
+    <string name="error_fetching_audio">Error fetching stream</string>
 </resources>
