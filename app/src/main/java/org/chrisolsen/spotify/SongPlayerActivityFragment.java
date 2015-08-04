@@ -43,6 +43,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
     /**
      * Helper method allowing this fragment to be initialized with some required data
+     *
      * @param songs
      * @param playIndex
      * @return
@@ -59,6 +60,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
     /**
      * Initialize all components
+     *
      * @param inflater
      * @param container
      * @param savedInstanceState
@@ -89,10 +91,12 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
@@ -108,7 +112,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         Parcelable[] plist = getArguments().getParcelableArray("songs");
         mPlaylist = new Song[plist.length];
         for (int i = 0; i < plist.length; i++) {
-            mPlaylist[i] = (Song)plist[i];
+            mPlaylist[i] = (Song) plist[i];
         }
 
         // show selected song's details
@@ -133,6 +137,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
     /**
      * Removes the dialog title bar when displayed as a floating fragment
+     *
      * @param savedInstanceState
      * @return
      */
@@ -145,6 +150,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
     /**
      * Handler for all the ui buttons
+     *
      * @param v
      */
     @Override
@@ -280,11 +286,12 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
     /**
      * Sets the seekbar and media player's position
+     *
      * @param percent
      */
     private void setPlayerPosition(int percent) {
         final int duration = mMediaPlayer.getDuration();
-        final int currentTime = (int)(duration * percent / 100f);
+        final int currentTime = (int) (duration * percent / 100f);
 
         mMediaPlayer.seekTo(currentTime);
 
