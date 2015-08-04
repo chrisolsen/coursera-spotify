@@ -58,6 +58,9 @@ public class ArtistTopSongsLoader extends AsyncTaskLoader<List<Song>> {
             song.name = t.name;
             song.url = t.uri;
             song.previewUrl = t.preview_url;
+            song.duration = t.duration_ms;
+            song.popularity = t.popularity;
+            song.explicit = t.explicit;
 
             String imageUrl = t.album.images.get(0).url;
             int maxSize = 0;
