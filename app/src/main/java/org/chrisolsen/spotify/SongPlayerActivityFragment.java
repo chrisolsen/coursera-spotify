@@ -42,6 +42,22 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     private ValueAnimator mProgressAnim;
 
     /**
+     * Helper method allowing this fragment to be initialized with some required data
+     * @param songs
+     * @param playIndex
+     * @return
+     */
+    public static SongPlayerActivityFragment newInstance(Song[] songs, int playIndex) {
+        SongPlayerActivityFragment f = new SongPlayerActivityFragment();
+        Bundle b = new Bundle();
+        b.putParcelableArray("songs", songs);
+        b.putInt("playIndex", playIndex);
+        f.setArguments(b);
+
+        return f;
+    }
+
+    /**
      * Initialize all components
      * @param inflater
      * @param container
@@ -150,22 +166,6 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         } else if (id == R.id.btn_next_song) {
             playNext();
         }
-    }
-
-    /**
-     * Helper method allowing this fragment to be initialized with some required data
-     * @param songs
-     * @param playIndex
-     * @return
-     */
-    public static SongPlayerActivityFragment newInstance(Song[] songs, int playIndex) {
-        SongPlayerActivityFragment f = new SongPlayerActivityFragment();
-        Bundle b = new Bundle();
-        b.putParcelableArray("songs", songs);
-        b.putInt("playIndex", playIndex);
-        f.setArguments(b);
-
-        return f;
     }
 
     /**
