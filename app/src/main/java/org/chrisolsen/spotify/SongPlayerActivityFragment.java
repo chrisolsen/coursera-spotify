@@ -7,6 +7,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,8 +33,8 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     private final String LOG_TAG = this.getClass().getSimpleName();
 
     private TextView mSongNameText, mArtistNameText, mAlbumNameTest, mSongDuration, mSongPosition;
-    private ImageButton mPrevButton, mPlayButton, mNextButton;
     private ImageView mAlbumImage;
+    private ImageButton mPlayButton;
     private Song[] mPlaylist;
     private MediaPlayer mMediaPlayer;
     private int mPlaylistIndex;
@@ -44,9 +45,9 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     /**
      * Helper method allowing this fragment to be initialized with some required data
      *
-     * @param songs
-     * @param playIndex
-     * @return
+     * @param songs List of songs
+     * @param playIndex Index of the song to be played
+     * @return Generarte fragment
      */
     public static SongPlayerActivityFragment newInstance(Song[] songs, int playIndex) {
         SongPlayerActivityFragment f = new SongPlayerActivityFragment();
@@ -60,11 +61,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
     /**
      * Initialize all components
-     *
-     * @param inflater
-     * @param container
-     * @param savedInstanceState
-     * @return
+     * @return The create view
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -84,10 +81,8 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         mSongDuration = (TextView) view.findViewById(R.id.song_duration);
         mSongPosition = (TextView) view.findViewById(R.id.song_position);
         mAlbumImage = (ImageView) view.findViewById(R.id.album_image);
-        mPrevButton = (ImageButton) view.findViewById(R.id.btn_previous_song);
-        mPlayButton = (ImageButton) view.findViewById(R.id.btn_play);
-        mNextButton = (ImageButton) view.findViewById(R.id.btn_next_song);
         mSeekBar = (SeekBar) view.findViewById(R.id.seek_bar);
+        mPlayButton = (ImageButton) view.findViewById(R.id.btn_play);
 
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -104,14 +99,19 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
             }
         });
 
-        mPrevButton.setOnClickListener(this);
+        ImageButton prevButton = (ImageButton) view.findViewById(R.id.btn_previous_song);
+        ImageButton nextButton = (ImageButton) view.findViewById(R.id.btn_next_song);
+
+        prevButton.setOnClickListener(this);
         mPlayButton.setOnClickListener(this);
-        mNextButton.setOnClickListener(this);
+        nextButton.setOnClickListener(this);
 
         // list of songs to allow skipping between songs
         Parcelable[] plist = getArguments().getParcelableArray("songs");
-        mPlaylist = new Song[plist.length];
-        for (int i = 0; i < plist.length; i++) {
+
+        int playListLength = plist != null ? plist.length : 0;
+        mPlaylist = new Song[playListLength];
+        for (int i = 0; i < playListLength; i++) {
             mPlaylist[i] = (Song) plist[i];
         }
 
@@ -131,6 +131,9 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     public void onStop() {
         super.onStop();
 
+        if (mProgressAnim != null) {
+            mProgressAnim.cancel();
+        }
         mMediaPlayer.release();
         mMediaPlayer = null;
     }
@@ -138,9 +141,10 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     /**
      * Removes the dialog title bar when displayed as a floating fragment
      *
-     * @param savedInstanceState
-     * @return
+     * @param savedInstanceState Any previously saved state
+     * @return Reference to the dialog
      */
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
@@ -151,7 +155,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     /**
      * Handler for all the ui buttons
      *
-     * @param v
+     * @param v Reference to the button clicked
      */
     @Override
     public void onClick(View v) {
@@ -287,7 +291,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     /**
      * Sets the seekbar and media player's position
      *
-     * @param percent
+     * @param percent Percent of the current song's position
      */
     private void setPlayerPosition(int percent) {
         final int duration = mMediaPlayer.getDuration();
