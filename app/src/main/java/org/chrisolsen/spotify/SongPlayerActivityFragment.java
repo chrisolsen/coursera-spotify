@@ -2,10 +2,12 @@ package org.chrisolsen.spotify;
 
 import android.animation.ValueAnimator;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -18,29 +20,21 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
-
 public class SongPlayerActivityFragment extends DialogFragment implements View.OnClickListener {
-
-    private static final int PLAYER_STATE_STOPPED = 0;
-    private static final int PLAYER_STATE_PLAYING = 1;
-    private static final int PLAYER_STATE_PAUSED = 2;
 
     private final String LOG_TAG = this.getClass().getSimpleName();
 
     private TextView mSongNameText, mArtistNameText, mAlbumNameTest, mSongDuration, mSongPosition;
     private ImageView mAlbumImage;
     private ImageButton mPlayButton;
-    private Song[] mPlaylist;
-    private MediaPlayer mMediaPlayer;
-    private int mPlaylistIndex;
-    private int mPlayerState;
+
     private SeekBar mSeekBar;
     private ValueAnimator mProgressAnim;
+
+    private PlayService mPlayService;
 
     /**
      * Helper method allowing this fragment to be initialized with some required data
@@ -72,8 +66,6 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         if (getArguments() == null) {
             return view;
         }
-
-        mMediaPlayer = new MediaPlayer();
 
         mSongNameText = (TextView) view.findViewById(R.id.song_name);
         mArtistNameText = (TextView) view.findViewById(R.id.artist_name);
@@ -110,17 +102,41 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         Parcelable[] plist = getArguments().getParcelableArray("songs");
 
         int playListLength = plist != null ? plist.length : 0;
-        mPlaylist = new Song[playListLength];
+        Song[] songs = new Song[playListLength];
         for (int i = 0; i < playListLength; i++) {
-            mPlaylist[i] = (Song) plist[i];
+            songs[i] = (Song) plist[i];
         }
 
         // show selected song's details
-        mPlaylistIndex = getArguments().getInt("playIndex");
+        int songIndex = getArguments().getInt("playIndex");
 
-        bindSongDetails();
+        initPlayer(songs, songIndex);
 
         return view;
+    }
+
+    private void initPlayer(final Song[] songs, final int songIndex) {
+        Intent intent = new Intent(getActivity(), PlayService.class);
+
+        getActivity().bindService(intent, new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder binder) {
+                PlayService.SongBinder b = (PlayService.SongBinder) binder;
+                mPlayService = b.getService();
+                mPlayService.init(songs, songIndex, new PlayService.TrackReceivedListener() {
+                    @Override
+                    public void onReceived() {
+                        resetProgressBar();
+                    }
+                });
+                bindSongDetails();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                mPlayService = null;
+            }
+        }, Context.BIND_AUTO_CREATE);
     }
 
     /**
@@ -134,8 +150,6 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         if (mProgressAnim != null) {
             mProgressAnim.cancel();
         }
-        mMediaPlayer.release();
-        mMediaPlayer = null;
     }
 
     /**
@@ -162,12 +176,12 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         int id = v.getId();
 
         if (id == R.id.btn_play) {
-            if (mPlayerState == PLAYER_STATE_STOPPED) {
+            if (mPlayService.isStopped()) {
                 play();
-            } else if (mPlayerState == PLAYER_STATE_PLAYING) {
-                pause();
-            } else if (mPlayerState == PLAYER_STATE_PAUSED) {
-                resume();
+            } else if (mPlayService.isPlaying()) {
+                mPlayService.pause();
+            } else if (mPlayService.isPaused()) {
+                mPlayService.resume();
             }
             updatePlayIcon();
 
@@ -182,7 +196,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      * Binds the current song's details with the image and titles
      */
     private void bindSongDetails() {
-        Song song = mPlaylist[mPlaylistIndex];
+        Song song = mPlayService.getCurrentSong();
         mSongNameText.setText(song.name);
 
         // artist / album details
@@ -202,75 +216,25 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     }
 
     /**
-     * Stops the current track at the current location
-     */
-    public void pause() {
-        mPlayerState = PLAYER_STATE_PAUSED;
-        mMediaPlayer.pause();
-    }
-
-    /**
-     * Restarts a previously paused track from the stopped location
-     */
-    public void resume() {
-        mPlayerState = PLAYER_STATE_PLAYING;
-        mMediaPlayer.start();
-    }
-
-    /**
      * Plays the song for the current song index
      */
     public void play() {
-        Song s = mPlaylist[mPlaylistIndex];
-
         // cancel it here, doing it inside `setPlayerPosition` results in the animation
         // event from continually making reference to the a no longer valid mMediaPlayer
         if (mProgressAnim != null) {
             mProgressAnim.cancel();
         }
 
-        // play song
-        try {
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mMediaPlayer.setDataSource(s.previewUrl);
-            mMediaPlayer.prepareAsync();
-
-
-            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    mPlayerState = PLAYER_STATE_PLAYING;
-                    mMediaPlayer.start();
-                    setPlayerPosition(0);
-                }
-            });
-
-            mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    playNext();
-                }
-            });
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            Context c = this.getActivity();
-            Toast.makeText(c, c.getString(R.string.error_fetching_audio), Toast.LENGTH_SHORT).show();
-        }
-
+        mPlayService.play();
     }
 
     /**
      * Play the next track
      */
     public void playNext() {
-        mMediaPlayer.stop();
-        mMediaPlayer.reset();
-        if (mPlaylistIndex < mPlaylist.length - 1) {
-            mPlaylistIndex++;
+        if (mPlayService.playNext()) {
             bindSongDetails();
             updatePlayIcon();
-            play();
         }
     }
 
@@ -278,14 +242,14 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      * Play the previous track
      */
     public void playPrevious() {
-        mMediaPlayer.stop();
-        mMediaPlayer.reset();
-        if (mPlaylistIndex > 0) {
-            mPlaylistIndex--;
+        if (mPlayService.playPrevious()) {
             bindSongDetails();
             updatePlayIcon();
-            play();
         }
+    }
+
+    private void resetProgressBar() {
+        setPlayerPosition(0);
     }
 
     /**
@@ -294,10 +258,11 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      * @param percent Percent of the current song's position
      */
     private void setPlayerPosition(int percent) {
-        final int duration = mMediaPlayer.getDuration();
+        // FIXME: remove this for a real world app
+        final int duration = mPlayService.getPreviewDuration();
         final int currentTime = (int) (duration * percent / 100f);
 
-        mMediaPlayer.seekTo(currentTime);
+        mPlayService.seekTo(currentTime);
 
         mProgressAnim = ValueAnimator.ofInt(0, duration);
         mProgressAnim.setDuration(duration);
@@ -305,7 +270,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         mProgressAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                int time = mMediaPlayer.getCurrentPosition();
+                int time = mPlayService.getCurrentPosition();
                 float percent = (time * 1.0f) / duration * 100;
 
                 mSongPosition.setText(toTime(time / 1000));
@@ -330,15 +295,10 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     private void updatePlayIcon() {
         int resId = 0;
 
-        switch (mPlayerState) {
-            case PLAYER_STATE_STOPPED:
-            case PLAYER_STATE_PAUSED:
-                resId = android.R.drawable.ic_media_play;
-                break;
-
-            case PLAYER_STATE_PLAYING:
-                resId = android.R.drawable.ic_media_pause;
-                break;
+        if (mPlayService.isPlaying()) {
+            resId = android.R.drawable.ic_media_pause;
+        } else if (mPlayService.isStopped() || mPlayService.isPaused()) {
+            resId = android.R.drawable.ic_media_play;
         }
 
         mPlayButton.setImageResource(resId);

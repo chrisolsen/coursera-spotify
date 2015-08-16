@@ -35,6 +35,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ArtistTopSongsActivity" />
         </activity>
+
+        <service android:name=".PlayService" android:exported="false" />
     </application>
 
 </manifest>
