@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,14 +35,18 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     private SeekBar mSeekBar;
     private ValueAnimator mProgressAnim;
 
+    // allow service public methods to be called
     private PlayService mPlayService;
+
+    // allow for later disconnection
+    private ServiceConnection mPlayServiceConnection;
 
     /**
      * Helper method allowing this fragment to be initialized with some required data
      *
      * @param songs List of songs
      * @param playIndex Index of the song to be played
-     * @return Generarte fragment
+     * @return Generate fragment
      */
     public static SongPlayerActivityFragment newInstance(Song[] songs, int playIndex) {
         SongPlayerActivityFragment f = new SongPlayerActivityFragment();
@@ -60,9 +65,9 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(LOG_TAG, "in the onCreateView");
 
         View view = inflater.inflate(R.layout.song_player_fragment, container, false);
-
         if (getArguments() == null) {
             return view;
         }
@@ -87,7 +92,10 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                setPlayerPosition(seekBar.getProgress());
+                int time = mPlayService.convertToTimePlayed(seekBar.getProgress());
+
+                mPlayService.seekTo(time);
+                setProgressBarPosition(time);
             }
         });
 
@@ -115,41 +123,63 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         return view;
     }
 
+    /**
+     * Remove dialog.
+     */
+    @Override
+    public void onDestroyView() {
+        Log.d(LOG_TAG, "onDestroyView");
+
+        mPlayService.showNotification();
+        getActivity().unbindService(mPlayServiceConnection);
+
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d(LOG_TAG, "onStop");
+    }
+
     private void initPlayer(final Song[] songs, final int songIndex) {
+        Log.d(LOG_TAG, "initPlayer");
+
         Intent intent = new Intent(getActivity(), PlayService.class);
 
-        getActivity().bindService(intent, new ServiceConnection() {
+        mPlayServiceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder binder) {
                 PlayService.SongBinder b = (PlayService.SongBinder) binder;
                 mPlayService = b.getService();
-                mPlayService.init(songs, songIndex, new PlayService.TrackReceivedListener() {
-                    @Override
-                    public void onReceived() {
-                        resetProgressBar();
-                    }
-                });
-                bindSongDetails();
+
+                setProgressBarPosition(0);
+
+                mPlayService.init(songs, songIndex,
+                        new PlayService.TrackReceivedListener() {
+                            @Override
+                            public void onReceived() {
+                                resetProgressBar();
+                            }
+                        },
+                        new PlayService.SongChangedListener() {
+                            @Override
+                            public void onChanged(Song song) {
+                                bindSongDetails(song);
+                            }
+                        }
+                );
+                bindSongDetails(songs[songIndex]);
             }
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
                 mPlayService = null;
             }
-        }, Context.BIND_AUTO_CREATE);
-    }
+        };
 
-    /**
-     * Clean up
-     * Unreleased MediaPlayer results in a lot of lost memory
-     */
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        if (mProgressAnim != null) {
-            mProgressAnim.cancel();
-        }
+        getActivity().startService(intent);
+        getActivity().bindService(intent, mPlayServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     /**
@@ -195,8 +225,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     /**
      * Binds the current song's details with the image and titles
      */
-    private void bindSongDetails() {
-        Song song = mPlayService.getCurrentSong();
+    private void bindSongDetails(Song song) {
         mSongNameText.setText(song.name);
 
         // artist / album details
@@ -225,15 +254,15 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
             mProgressAnim.cancel();
         }
 
-        mPlayService.play();
+        mPlayService.play(false);
     }
 
     /**
      * Play the next track
      */
     public void playNext() {
-        if (mPlayService.playNext()) {
-            bindSongDetails();
+        mProgressAnim.cancel();
+        if (mPlayService.playNext(false)) {
             updatePlayIcon();
         }
     }
@@ -242,27 +271,18 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      * Play the previous track
      */
     public void playPrevious() {
-        if (mPlayService.playPrevious()) {
-            bindSongDetails();
+        mProgressAnim.cancel();
+        if (mPlayService.playPrevious(false)) {
             updatePlayIcon();
         }
     }
 
     private void resetProgressBar() {
-        setPlayerPosition(0);
+        setProgressBarPosition(0);
     }
 
-    /**
-     * Sets the seekbar and media player's position
-     *
-     * @param percent Percent of the current song's position
-     */
-    private void setPlayerPosition(int percent) {
-        // FIXME: remove this for a real world app
+    private void setProgressBarPosition(int time) {
         final int duration = mPlayService.getPreviewDuration();
-        final int currentTime = (int) (duration * percent / 100f);
-
-        mPlayService.seekTo(currentTime);
 
         mProgressAnim = ValueAnimator.ofInt(0, duration);
         mProgressAnim.setDuration(duration);
@@ -271,15 +291,19 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 int time = mPlayService.getCurrentPosition();
-                float percent = (time * 1.0f) / duration * 100;
+                int percent = mPlayService.convertToPercentPlayed(time);
 
                 mSongPosition.setText(toTime(time / 1000));
-                mSeekBar.setProgress((int) percent);
+                mSeekBar.setProgress(percent);
             }
         });
 
-        mProgressAnim.start();
-        mProgressAnim.setCurrentPlayTime(currentTime); // must be set after start
+        if (time > 0) {
+            mProgressAnim.start();
+            mProgressAnim.setCurrentPlayTime(time); // must be set after start
+        } else {
+            mProgressAnim.cancel();
+        }
     }
 
     private String toTime(long seconds) {
