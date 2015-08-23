@@ -25,13 +25,12 @@ public class PlayService extends Service {
     public static final String ACTION_PAUSE = "pause";
     public static final String ACTION_NEXT = "next";
     public static final String ACTION_PREV = "prev";
-    public static final String ACTION_CLOSE = "close";
+    public static final String ACTION_RESUME = "resume";
 
     // Player States
     private static final int PLAYER_STATE_STOPPED = 0;
     private static final int PLAYER_STATE_PLAYING = 1;
     private static final int PLAYER_STATE_PAUSED = 2;
-
 
     private final String LOG_TAG = PlayService.class.getSimpleName();
     private TrackReceivedListener mOnReceiveListener;
@@ -72,6 +71,9 @@ public class PlayService extends Service {
                     case ACTION_PAUSE:
                         pause();
                         break;
+                    case ACTION_RESUME:
+                        resume();
+                        break;
                     case ACTION_PLAY:
                         play();
                         break;
@@ -80,9 +82,6 @@ public class PlayService extends Service {
                         break;
                     case ACTION_STOP:
                         stop();
-                        break;
-                    case ACTION_CLOSE:
-                        Log.d(LOG_TAG, "in the action close");
                         break;
                 }
             }
@@ -172,6 +171,8 @@ public class PlayService extends Service {
                     mp.start();
                     mp.seekTo(0);
 
+                    showNotification();
+
                     if (mOnReceiveListener != null) mOnReceiveListener.onReceived();
                     if (mSongChangeListener != null) mSongChangeListener.onChanged(song);
                 }
@@ -183,7 +184,6 @@ public class PlayService extends Service {
                     playNext();
                 }
             });
-            showNotification();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -217,6 +217,9 @@ public class PlayService extends Service {
         Log.d(LOG_TAG, "pause");
         mPlayerState = PLAYER_STATE_PAUSED;
         mMediaPlayer.pause();
+
+        // to allow the pause button to be converted to a play and handled appropriately
+        showNotification();
     }
 
     public void removeNotification() {
@@ -227,6 +230,7 @@ public class PlayService extends Service {
         Log.d(LOG_TAG, "resume");
         mPlayerState = PLAYER_STATE_PLAYING;
         mMediaPlayer.start();
+        showNotification();
     }
 
     public void stop() {
@@ -282,13 +286,13 @@ public class PlayService extends Service {
                 Intent pauseIntent = new Intent(getApplicationContext(), PlayService.class);
                 pauseIntent.setAction(ACTION_PAUSE);
 
-                Intent deleteEvent = new Intent(getApplicationContext(), PlayService.class);
-                deleteEvent.setAction(ACTION_CLOSE);
+                Intent resumeEvent = new Intent(getApplicationContext(), PlayService.class);
+                resumeEvent.setAction(ACTION_RESUME);
 
                 PendingIntent nextPIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 PendingIntent prevPIntent = PendingIntent.getService(getApplicationContext(), 0, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 PendingIntent pausePIntent = PendingIntent.getService(getApplicationContext(), 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                PendingIntent deletePIntent = PendingIntent.getService(getApplicationContext(), 0, deleteEvent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent resumePIntent = PendingIntent.getService(getApplicationContext(), 0, resumeEvent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
                 builder.setContentTitle(song.name)
@@ -296,14 +300,19 @@ public class PlayService extends Service {
                         .setContentIntent(pi)
                         .setSmallIcon(R.drawable.ic_spotify_notificatiopn)
                         .setLargeIcon(img)
-                        .setDeleteIntent(deletePIntent)
                         .setContentText(song.album.artist.name)
                         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                         .setStyle(new NotificationCompat.MediaStyle()
-                                .setShowActionsInCompactView(0, 1, 2))
-                        .addAction(android.R.drawable.ic_media_previous, null, prevPIntent)
-                        .addAction(android.R.drawable.ic_media_pause, null, pausePIntent)
-                        .addAction(android.R.drawable.ic_media_next, null, nextPIntent);
+                                .setShowActionsInCompactView(0, 1, 2));
+
+
+                Log.d(LOG_TAG, "playyer state: " + mPlayerState);
+                builder.addAction(android.R.drawable.ic_media_previous, null, prevPIntent);
+                if (mPlayerState == PLAYER_STATE_PLAYING)
+                    builder.addAction(android.R.drawable.ic_media_pause, null, pausePIntent);
+                else
+                    builder.addAction(android.R.drawable.ic_media_play, null, resumePIntent);
+                builder.addAction(android.R.drawable.ic_media_next, null, nextPIntent);
 
                 startForeground(1, builder.build());
             }
