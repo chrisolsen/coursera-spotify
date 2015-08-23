@@ -9,7 +9,7 @@ import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -20,15 +20,19 @@ import java.io.IOException;
 public class PlayService extends Service {
 
     // Notification actions
-    public static final String ACTION_PLAY = "org.chrisolsen.spotify.actions.play";
-    public static final String ACTION_STOP = "org.chrisolsen.spotify.actions.stop";
-    public static final String ACTION_PAUSE = "org.chrisolsen.spotify.actions.pause";
-    public static final String ACTION_NEXT = "org.chrisolsen.spotify.actions.next";
-    public static final String ACTION_PREV = "org.chrisolsen.spotify.actions.prev";
+    public static final String ACTION_PLAY = "play";
+    public static final String ACTION_STOP = "stop";
+    public static final String ACTION_PAUSE = "pause";
+    public static final String ACTION_NEXT = "next";
+    public static final String ACTION_PREV = "prev";
+    public static final String ACTION_CLOSE = "close";
+
     // Player States
     private static final int PLAYER_STATE_STOPPED = 0;
     private static final int PLAYER_STATE_PLAYING = 1;
     private static final int PLAYER_STATE_PAUSED = 2;
+
+
     private final String LOG_TAG = PlayService.class.getSimpleName();
     private TrackReceivedListener mOnReceiveListener;
     private SongChangedListener mSongChangeListener;
@@ -76,6 +80,9 @@ public class PlayService extends Service {
                         break;
                     case ACTION_STOP:
                         stop();
+                        break;
+                    case ACTION_CLOSE:
+                        Log.d(LOG_TAG, "in the action close");
                         break;
                 }
             }
@@ -246,6 +253,7 @@ public class PlayService extends Service {
 
         final Song song = getCurrentSong();
 
+        // FIXME: not sure if this is the best way to pre-load the image for the notification or not
         new AsyncTask<Void, Void, Bitmap>() {
             @Override
             protected Bitmap doInBackground(Void... params) {
@@ -263,13 +271,39 @@ public class PlayService extends Service {
 
             @Override
             protected void onPostExecute(Bitmap img) {
-                NotificationCompat.Builder builder =
-                        new NotificationCompat.Builder(getApplicationContext())
-                                .setContentTitle(song.name)
-                                .setContentIntent(pi)
-                                .setSmallIcon(R.drawable.ic_spotify_notificatiopn)
-                                .setLargeIcon(img)
-                                .setContentText(song.album.artist.name);
+
+                // Notification actions
+                Intent nextIntent = new Intent(getApplicationContext(), PlayService.class);
+                nextIntent.setAction(ACTION_NEXT);
+
+                Intent prevIntent = new Intent(getApplicationContext(), PlayService.class);
+                prevIntent.setAction(ACTION_PREV);
+
+                Intent pauseIntent = new Intent(getApplicationContext(), PlayService.class);
+                pauseIntent.setAction(ACTION_PAUSE);
+
+                Intent deleteEvent = new Intent(getApplicationContext(), PlayService.class);
+                deleteEvent.setAction(ACTION_CLOSE);
+
+                PendingIntent nextPIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent prevPIntent = PendingIntent.getService(getApplicationContext(), 0, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent pausePIntent = PendingIntent.getService(getApplicationContext(), 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent deletePIntent = PendingIntent.getService(getApplicationContext(), 0, deleteEvent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                builder.setContentTitle(song.name)
+                        .setShowWhen(false)
+                        .setContentIntent(pi)
+                        .setSmallIcon(R.drawable.ic_spotify_notificatiopn)
+                        .setLargeIcon(img)
+                        .setDeleteIntent(deletePIntent)
+                        .setContentText(song.album.artist.name)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        .setStyle(new NotificationCompat.MediaStyle()
+                                .setShowActionsInCompactView(0, 1, 2))
+                        .addAction(android.R.drawable.ic_media_previous, null, prevPIntent)
+                        .addAction(android.R.drawable.ic_media_pause, null, pausePIntent)
+                        .addAction(android.R.drawable.ic_media_next, null, nextPIntent);
 
                 startForeground(1, builder.build());
             }
