@@ -19,58 +19,20 @@ import java.io.IOException;
 
 public class PlayService extends Service {
 
-    private final String LOG_TAG = PlayService.class.getSimpleName();
-    private TrackReceivedListener mOnReceiveListener;
-    private SongChangedListener mSongChangeListener;
-
-    // Interface to allow binding to when the track has been fully received from the api
-    public interface TrackReceivedListener {
-        void onReceived();
-    }
-
-    public interface SongChangedListener {
-        void onChanged(Song song);
-    }
-
-    private SongBinder mBinder = new SongBinder();
-
-    public class SongBinder extends Binder {
-
-        private
-
-        public boolean play() {
-
-        }
-
-        public boolean playNext() {
-
-        }
-
-        public boolean playPrevious() {
-
-        }
-
-        public void seekTo(int time) {
-
-        }
-
-//        public PlayService getService() {
-//            return PlayService.this;
-//        }
-    }
-
-    // Player States
-    private static final int PLAYER_STATE_STOPPED = 0;
-    private static final int PLAYER_STATE_PLAYING = 1;
-    private static final int PLAYER_STATE_PAUSED = 2;
-
     // Notification actions
     public static final String ACTION_PLAY = "org.chrisolsen.spotify.actions.play";
     public static final String ACTION_STOP = "org.chrisolsen.spotify.actions.stop";
     public static final String ACTION_PAUSE = "org.chrisolsen.spotify.actions.pause";
     public static final String ACTION_NEXT = "org.chrisolsen.spotify.actions.next";
     public static final String ACTION_PREV = "org.chrisolsen.spotify.actions.prev";
-
+    // Player States
+    private static final int PLAYER_STATE_STOPPED = 0;
+    private static final int PLAYER_STATE_PLAYING = 1;
+    private static final int PLAYER_STATE_PAUSED = 2;
+    private final String LOG_TAG = PlayService.class.getSimpleName();
+    private TrackReceivedListener mOnReceiveListener;
+    private SongChangedListener mSongChangeListener;
+    private SongBinder mBinder = new SongBinder();
     // vars
     private Song[] mPlaylist;
     private MediaPlayer mMediaPlayer = new MediaPlayer();
@@ -95,22 +57,22 @@ public class PlayService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
+        Log.d(LOG_TAG, "onStartCommand: " + intent.getAction());
         if (intent != null) {
             String action = intent.getAction();
             if (action != null) {
                 switch (action) {
                     case ACTION_NEXT:
-                        playNext(true);
+                        playNext();
                         break;
                     case ACTION_PAUSE:
                         pause();
                         break;
                     case ACTION_PLAY:
-                        play(true);
+                        play();
                         break;
                     case ACTION_PREV:
-                        playPrevious(true);
+                        playPrevious();
                         break;
                     case ACTION_STOP:
                         stop();
@@ -122,111 +84,159 @@ public class PlayService extends Service {
         return START_STICKY;
     }
 
-    public void init(Song[] playList, int playListIndex, TrackReceivedListener trackReceivedListener, SongChangedListener songChangedListener) {
+    // Exposed service methods
+
+    public void connect(Song[] playList, int playListIndex, TrackReceivedListener trackReceivedListener, SongChangedListener songChangedListener) {
+        Log.d(LOG_TAG, "connect()");
         mPlaylist = playList;
         mPlaylistIndex = playListIndex;
         mOnReceiveListener = trackReceivedListener;
         mSongChangeListener = songChangedListener;
     }
 
+    public void disconnect() {
+        Log.d(LOG_TAG, "disconnect()");
+        mSongChangeListener = null;
+        mOnReceiveListener = null;
+    }
+
     public Song getCurrentSong() {
         return mPlaylist[mPlaylistIndex];
+    }
+
+    public int getCurrentPosition() {
+        return mMediaPlayer.getCurrentPosition();
     }
 
     public int getPreviewDuration() {
         return mMediaPlayer.getDuration();
     }
 
-    public int convertToTimePlayed(int percent) {
-        int duration = getPreviewDuration();
-        return (int) (duration * percent / 100f);
+    public boolean isPlaying() {
+        return mPlayerState == PLAYER_STATE_PLAYING;
     }
 
-    public int convertToPercentPlayed(int time) {
-        return (int) ((time * 1.0f) / getPreviewDuration() * 100);
+    public boolean isStopped() {
+        return mPlayerState == PLAYER_STATE_STOPPED;
+    }
+
+    public boolean isPaused() {
+        return mPlayerState == PLAYER_STATE_PAUSED;
     }
 
     public void seekTo(int time) {
         mMediaPlayer.seekTo(time);
     }
 
-    public void play(final boolean showNotification) {
+    public void play() {
+        Log.d(LOG_TAG, "play");
+
         final Song song;
 
         try {
             // current song
             song = mPlaylist[mPlaylistIndex];
 
+            Log.d(LOG_TAG, "song to play: " + song.name);
+
+            // in the case that a song from a different artist is being played
+            mMediaPlayer.reset();
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setDataSource(song.previewUrl);
             mMediaPlayer.prepareAsync();
 
+            mMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mp, int what, int extra) {
+                    // FIXME: handle this error...properly
+                    if (what == -38) {
+                        return true;
+                    }
+
+                    return true;
+                }
+            });
+
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
+                    Log.d(LOG_TAG, "about to start the song");
                     mPlayerState = PLAYER_STATE_PLAYING;
-                    mMediaPlayer.start();
-                    mMediaPlayer.seekTo(0);
-                    mOnReceiveListener.onReceived();
-                    mSongChangeListener.onChanged(song);
+                    mp.start();
+                    mp.seekTo(0);
+
+                    if (mOnReceiveListener != null) mOnReceiveListener.onReceived();
+                    if (mSongChangeListener != null) mSongChangeListener.onChanged(song);
                 }
             });
 
             mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    playNext(showNotification);
+                    playNext();
                 }
             });
+            showNotification();
 
-            if (showNotification) {
-                showNotification();
-            }
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(getBaseContext(), R.string.error_fetching_audio, Toast.LENGTH_SHORT).show();
         }
     }
 
-    public boolean playNext(boolean showNotification) {
+    public boolean playNext() {
         mMediaPlayer.stop();
         mMediaPlayer.reset();
         if (mPlaylistIndex < mPlaylist.length - 1) {
             mPlaylistIndex++;
-            play(showNotification);
+            play();
             return true;
         }
         return false;
     }
 
-    public boolean playPrevious(boolean showNotification) {
+    public boolean playPrevious() {
         mMediaPlayer.stop();
         mMediaPlayer.reset();
         if (mPlaylistIndex > 0) {
             mPlaylistIndex--;
-            play(showNotification);
+            play();
             return true;
         }
         return false;
     }
 
     public void pause() {
+        Log.d(LOG_TAG, "pause");
         mPlayerState = PLAYER_STATE_PAUSED;
         mMediaPlayer.pause();
     }
 
+    public void removeNotification() {
+        stopForeground(true);
+    }
+
     public void resume() {
+        Log.d(LOG_TAG, "resume");
         mPlayerState = PLAYER_STATE_PLAYING;
         mMediaPlayer.start();
     }
 
     public void stop() {
+        Log.d(LOG_TAG, "stop");
         mPlayerState = PLAYER_STATE_STOPPED;
         mMediaPlayer.stop();
     }
 
     public void showNotification() {
+        // if the listeners are not null then the activity is active, so no notification is require
+        if (mOnReceiveListener != null && mSongChangeListener != null) {
+            Log.d(LOG_TAG, "showNotification abort");
+            return;
+        }
+
         Log.d(LOG_TAG, "showNotification");
+
         Intent intent = new Intent(getApplicationContext(), SongPlayerActivity.class);
         intent.putExtra("songs", mPlaylist);
         intent.putExtra("playIndex", mPlaylistIndex);
@@ -266,20 +276,25 @@ public class PlayService extends Service {
         }.execute();
     }
 
-    public int getCurrentPosition() {
-        return mMediaPlayer.getCurrentPosition();
+    /**
+     * Interface to allow binding to when the track has been fully received from the api
+     */
+    public interface TrackReceivedListener {
+        void onReceived();
     }
 
-    public boolean isPlaying() {
-        return mPlayerState == PLAYER_STATE_PLAYING;
+    // allow an activity/fragment to take action when the song changes
+    public interface SongChangedListener {
+        void onChanged(Song song);
     }
 
-    public boolean isStopped() {
-        return mPlayerState == PLAYER_STATE_STOPPED;
-    }
+    /**
+     * Provides a reference to the service object
+     */
+    public class SongBinder extends Binder {
 
-    public boolean isPaused() {
-        return mPlayerState == PLAYER_STATE_PAUSED;
+        public PlayService getService() {
+            return PlayService.this;
+        }
     }
-
 }

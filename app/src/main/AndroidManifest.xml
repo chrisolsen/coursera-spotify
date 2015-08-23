@@ -30,7 +30,8 @@
                 android:value=".ArtistSearchActivity" />
         </activity>
         <activity
-            android:name=".SongPlayerActivity">
+            android:name=".SongPlayerActivity"
+            android:launchMode="singleTask">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ArtistTopSongsActivity" />

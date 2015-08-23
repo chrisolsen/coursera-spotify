@@ -3,7 +3,6 @@ package org.chrisolsen.spotify;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 public class SongPlayerActivity extends AppCompatActivity {
 
@@ -28,11 +27,5 @@ public class SongPlayerActivity extends AppCompatActivity {
                     .replace(R.id.fragment_container, frag)
                     .commit();
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(LOG_TAG, "onDestroy");
     }
 }

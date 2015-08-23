@@ -3,7 +3,6 @@ package org.chrisolsen.spotify;
 import android.animation.ValueAnimator;
 import android.app.Dialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -36,10 +35,13 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     private ValueAnimator mProgressAnim;
 
     // allow service public methods to be called
-    private PlayService mPlayService;
+    private PlayService mService;
 
     // allow for later disconnection
     private ServiceConnection mPlayServiceConnection;
+
+    private String mNewFingerprint;
+    private String mOldFingerprint;
 
     /**
      * Helper method allowing this fragment to be initialized with some required data
@@ -56,6 +58,26 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         f.setArguments(b);
 
         return f;
+    }
+
+    private static int convertToTimePlayed(int duration, int percent) {
+        return (int) (duration * percent / 100f);
+    }
+
+    private static int convertToPercentPlayed(int duration, int time) {
+        return (int) ((time * 1.0f) / duration * 100);
+    }
+
+    private static String toTime(long seconds) {
+        String min = Long.toString(seconds / 60);
+        String sec = Long.toString(seconds % 60);
+
+        // ensure seconds is in two digits
+        while (sec.length() < 2) {
+            sec = "0" + sec;
+        }
+
+        return min + ":" + sec;
     }
 
     /**
@@ -92,9 +114,9 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                int time = mPlayService.convertToTimePlayed(seekBar.getProgress());
+                int time = convertToTimePlayed(mService.getPreviewDuration(), seekBar.getProgress());
 
-                mPlayService.seekTo(time);
+                mService.seekTo(time);
                 setProgressBarPosition(time);
             }
         });
@@ -115,33 +137,69 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
             songs[i] = (Song) plist[i];
         }
 
-        // show selected song's details
         int songIndex = getArguments().getInt("playIndex");
+
+        if (savedInstanceState != null) {
+            mOldFingerprint = savedInstanceState.getString("fingerprint");
+        } else {
+            mOldFingerprint = "";
+        }
+
+        mNewFingerprint = Integer.toString(songs.hashCode()) + "-" + Integer.toString(songIndex);
 
         initPlayer(songs, songIndex);
 
         return view;
     }
 
-    /**
-     * Remove dialog.
-     */
     @Override
-    public void onDestroyView() {
-        Log.d(LOG_TAG, "onDestroyView");
+    public void onStart() {
+        super.onStart();
 
-        mPlayService.showNotification();
-        getActivity().unbindService(mPlayServiceConnection);
+        // on first run mService will be null
+        if (mService != null) {
+            mService.removeNotification();
+        }
+    }
 
-        super.onDestroyView();
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString("fingerprint", mNewFingerprint);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
     public void onStop() {
-        super.onStop();
         Log.d(LOG_TAG, "onStop");
+        super.onStop();
+
+        // if no song was started, mService will be null
+        if (mService != null) {
+            mService.disconnect();
+            mService.showNotification();
+        }
     }
 
+    /**
+     * Called when the fragment is no longer in use.  This is called
+     * after {@link #onStop()} and before {@link #onDetach()}.
+     */
+    @Override
+    public void onDestroy() {
+        Log.d(LOG_TAG, "onDestroy");
+        super.onDestroy();
+
+        // prevent dangling service connections
+        getActivity().unbindService(mPlayServiceConnection);
+        mPlayServiceConnection = null;
+    }
+
+    /**
+     * Sets up and binds the player and service connection
+     *
+     * @param songs
+     * @param songIndex
+     */
     private void initPlayer(final Song[] songs, final int songIndex) {
         Log.d(LOG_TAG, "initPlayer");
 
@@ -150,16 +208,21 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         mPlayServiceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder binder) {
-                PlayService.SongBinder b = (PlayService.SongBinder) binder;
-                mPlayService = b.getService();
+                Log.d(LOG_TAG, "onServiceConnected");
+                mService = ((PlayService.SongBinder) binder).getService();
 
-                setProgressBarPosition(0);
+                // ensure no notifications exist while the activity is active
+                mService.removeNotification();
 
-                mPlayService.init(songs, songIndex,
+                // bind for initial song
+                resetProgressBar();
+                bindSongDetails(songs[songIndex]);
+
+                mService.connect(songs, songIndex,
                         new PlayService.TrackReceivedListener() {
                             @Override
                             public void onReceived() {
-                                resetProgressBar();
+                                setProgressBarPosition(0);
                             }
                         },
                         new PlayService.SongChangedListener() {
@@ -169,17 +232,16 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
                             }
                         }
                 );
-                bindSongDetails(songs[songIndex]);
             }
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
-                mPlayService = null;
+                Log.d(LOG_TAG, "onServiceDisconnected");
             }
         };
 
         getActivity().startService(intent);
-        getActivity().bindService(intent, mPlayServiceConnection, Context.BIND_AUTO_CREATE);
+        getActivity().bindService(intent, mPlayServiceConnection, 0);
     }
 
     /**
@@ -204,21 +266,31 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     @Override
     public void onClick(View v) {
         int id = v.getId();
+        boolean isNewPlaylist = mNewFingerprint != mOldFingerprint;
 
-        if (id == R.id.btn_play) {
-            if (mPlayService.isStopped()) {
-                play();
-            } else if (mPlayService.isPlaying()) {
-                mPlayService.pause();
-            } else if (mPlayService.isPaused()) {
-                mPlayService.resume();
+        if (id == R.id.btn_play && mService.isStopped()) {
+            // cancel it here, doing it inside `setPlayerPosition` results in the animation
+            // event from continually making reference to the a no longer valid mMediaPlayer
+            if (mProgressAnim != null) {
+                mProgressAnim.cancel();
             }
-            updatePlayIcon();
-
+            mService.play();
+        } else if (id == R.id.btn_play && isNewPlaylist) {
+            mService.play();
+        } else if (id == R.id.btn_play && mService.isPlaying()) {
+            mService.pause();
+        } else if (id == R.id.btn_play && mService.isPaused()) {
+            mService.resume();
         } else if (id == R.id.btn_previous_song) {
             playPrevious();
         } else if (id == R.id.btn_next_song) {
             playNext();
+        }
+
+        // update the state after the service calls
+        if (id == R.id.btn_play) {
+            updatePlayIcon();
+            mOldFingerprint = mNewFingerprint; // reset the old fingerprint now that we are playing the list
         }
     }
 
@@ -245,24 +317,11 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     }
 
     /**
-     * Plays the song for the current song index
-     */
-    public void play() {
-        // cancel it here, doing it inside `setPlayerPosition` results in the animation
-        // event from continually making reference to the a no longer valid mMediaPlayer
-        if (mProgressAnim != null) {
-            mProgressAnim.cancel();
-        }
-
-        mPlayService.play(false);
-    }
-
-    /**
      * Play the next track
      */
     public void playNext() {
         mProgressAnim.cancel();
-        if (mPlayService.playNext(false)) {
+        if (mService.playNext()) {
             updatePlayIcon();
         }
     }
@@ -272,17 +331,17 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      */
     public void playPrevious() {
         mProgressAnim.cancel();
-        if (mPlayService.playPrevious(false)) {
+        if (mService.playPrevious()) {
             updatePlayIcon();
         }
     }
 
     private void resetProgressBar() {
-        setProgressBarPosition(0);
+        setProgressBarPosition(-1);
     }
 
     private void setProgressBarPosition(int time) {
-        final int duration = mPlayService.getPreviewDuration();
+        final int duration = mService.getPreviewDuration();
 
         mProgressAnim = ValueAnimator.ofInt(0, duration);
         mProgressAnim.setDuration(duration);
@@ -290,27 +349,20 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         mProgressAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                int time = mPlayService.getCurrentPosition();
-                int percent = mPlayService.convertToPercentPlayed(time);
+                int time = mService.getCurrentPosition();
+                int percent = convertToPercentPlayed(mService.getPreviewDuration(), time);
 
                 mSongPosition.setText(toTime(time / 1000));
                 mSeekBar.setProgress(percent);
             }
         });
 
-        if (time > 0) {
+        if (time >= 0) {
             mProgressAnim.start();
             mProgressAnim.setCurrentPlayTime(time); // must be set after start
         } else {
             mProgressAnim.cancel();
         }
-    }
-
-    private String toTime(long seconds) {
-        String min = Long.toString(seconds / 60);
-        String sec = Long.toString(seconds % 60);
-
-        return min + ":" + sec;
     }
 
     /**
@@ -319,9 +371,9 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     private void updatePlayIcon() {
         int resId = 0;
 
-        if (mPlayService.isPlaying()) {
+        if (mService.isPlaying()) {
             resId = android.R.drawable.ic_media_pause;
-        } else if (mPlayService.isStopped() || mPlayService.isPaused()) {
+        } else if (mService.isStopped() || mService.isPaused()) {
             resId = android.R.drawable.ic_media_play;
         }
 
