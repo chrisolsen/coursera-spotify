@@ -31,8 +31,10 @@
         </activity>
         <activity
             android:name=".SongPlayerActivity"
+            android:label=""
             android:launchMode="singleTask"
-            android:parentActivityName=".ArtistTopSongsActivity">
+            android:parentActivityName=".ArtistTopSongsActivity"
+            android:theme="@style/AppTheme.TransparentActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ArtistTopSongsActivity" />

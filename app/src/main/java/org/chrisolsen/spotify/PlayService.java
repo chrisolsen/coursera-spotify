@@ -118,8 +118,16 @@ public class PlayService extends Service {
         return mMediaPlayer.getCurrentPosition();
     }
 
+    public Song[] getPlayList() {
+        return mPlaylist;
+    }
+
+    public int getPlayListIndex() {
+        return mPlaylistIndex;
+    }
+
     public int getPreviewDuration() {
-        return mMediaPlayer.getDuration();
+        return 30000; //mMediaPlayer.getDuration();
     }
 
     public boolean isPlaying() {
@@ -171,7 +179,6 @@ public class PlayService extends Service {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
                     Log.d(LOG_TAG, "about to start the song");
-                    mPlayerState = PLAYER_STATE_PLAYING;
                     mp.start();
                     mp.seekTo(0);
 
@@ -182,6 +189,7 @@ public class PlayService extends Service {
                 }
             });
 
+            mPlayerState = PLAYER_STATE_PLAYING;
             mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
@@ -196,21 +204,35 @@ public class PlayService extends Service {
     }
 
     public boolean playNext() {
-        mMediaPlayer.stop();
-        mMediaPlayer.reset();
-        if (mPlaylistIndex < mPlaylist.length - 1) {
-            mPlaylistIndex++;
+        if (skipToNext()) {
             play();
             return true;
         }
         return false;
     }
 
-    public boolean playPrevious() {
-        mMediaPlayer.stop();
-        mMediaPlayer.reset();
+    public boolean skipToNext() {
+        Log.d(LOG_TAG, "skipToNext");
+        stop();
+        if (mPlaylistIndex < mPlaylist.length - 1) {
+            mPlaylistIndex++;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean skipToPrevious() {
+        Log.d(LOG_TAG, "skipToPrevious");
+        stop();
         if (mPlaylistIndex > 0) {
             mPlaylistIndex--;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean playPrevious() {
+        if (skipToPrevious()) {
             play();
             return true;
         }
@@ -241,6 +263,7 @@ public class PlayService extends Service {
         Log.d(LOG_TAG, "stop");
         mPlayerState = PLAYER_STATE_STOPPED;
         mMediaPlayer.stop();
+        mMediaPlayer.reset();
     }
 
     public void showNotification() {

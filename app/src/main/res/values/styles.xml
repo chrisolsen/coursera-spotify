@@ -7,11 +7,10 @@
     </style>
 
     <style name="AppTheme.TransparentActionBar">
-        <item name="colorPrimary">@color/transparent_black</item>
-        <item name="colorPrimaryDark">@color/transparent_black_dark</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="windowActionBarOverlay">true</item>
+
+        <item name="colorPrimary">@android:color/transparent</item>
         <item name="colorAccent">@color/color_accent</item>
     </style>
-
-    <color name="transparent_black_dark">#55000000</color>
-    <color name="transparent_black">#55000000</color>
 </resources>

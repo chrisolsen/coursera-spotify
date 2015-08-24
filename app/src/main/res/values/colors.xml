@@ -6,4 +6,8 @@
     <color name="color_list_view_selected">#5580D8FF</color>
     <color name="color_list_divider">#AAAAAA</color>
     <color name="color_text_dark">#333333</color>
+    <color name="color_text_light">#999999</color>
+
+    <color name="transparent_black_dark">#55000000</color>
+    <color name="transparent_black">#55000000</color>
 </resources>

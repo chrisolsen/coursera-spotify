@@ -138,17 +138,18 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
             songs[i] = (Song) plist[i];
         }
 
-        int songIndex = getArguments().getInt("playIndex");
+        int songIndex;
 
         if (savedInstanceState != null) {
             mOldFingerprint = savedInstanceState.getString("fingerprint");
+            songIndex = savedInstanceState.getInt("playIndex");
         } else {
             mOldFingerprint = "";
+            songIndex = getArguments().getInt("playIndex");
         }
 
-        mNewFingerprint = Integer.toString(songs.hashCode());
-
         initPlayer(songs, songIndex);
+        mNewFingerprint = Integer.toString(songs.hashCode());
 
         return view;
     }
@@ -166,6 +167,8 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putString("fingerprint", mNewFingerprint);
+        outState.putInt("playIndex", mService.getPlayListIndex());
+
         super.onSaveInstanceState(outState);
     }
 
@@ -224,12 +227,15 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
                         new PlayService.TrackReceivedListener() {
                             @Override
                             public void onReceived() {
+                                Log.d(LOG_TAG, "TrackReceivedListener.onReceived");
+                                //bindSongDetails(mService.getCurrentSong());
                                 setProgressBarPosition(0);
                             }
                         },
                         new PlayService.SongChangedListener() {
                             @Override
                             public void onChanged(Song song) {
+                                Log.d(LOG_TAG, "SongChangedListener.onChanged");
                                 bindSongDetails(song);
                             }
                         }
@@ -283,9 +289,13 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
             mService.pause();
         } else if (id == R.id.btn_play && mService.isPaused()) {
             mService.resume();
-        } else if (id == R.id.btn_previous_song) {
+        } else if (id == R.id.btn_previous_song && (mService.isPaused() || mService.isStopped())) {
+            skipToPrevious();
+        } else if (id == R.id.btn_previous_song && mService.isPlaying()) {
             playPrevious();
-        } else if (id == R.id.btn_next_song) {
+        } else if (id == R.id.btn_next_song && (mService.isPaused() || mService.isStopped())) {
+            skipToNext();
+        } else if (id == R.id.btn_next_song && mService.isPlaying()) {
             playNext();
         }
 
@@ -310,7 +320,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         String imageUrl = song.album.imageUrl == null ? song.album.artist.imageUrl : song.album.imageUrl;
 
         // song time details
-        mSongDuration.setText(toTime(song.duration / 1000));
+        mSongDuration.setText(toTime(mService.getPreviewDuration() / 1000));
         mSongPosition.setText(toTime(0));
 
         Picasso.with(getActivity())
@@ -322,9 +332,10 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      * Play the next track
      */
     public void playNext() {
+        Log.d(LOG_TAG, "playNext");
         mProgressAnim.cancel();
         if (mService.playNext()) {
-            updatePlayIcon();
+            bindSongDetails(mService.getCurrentSong());
         }
     }
 
@@ -332,9 +343,28 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      * Play the previous track
      */
     public void playPrevious() {
+        Log.d(LOG_TAG, "playPrevious");
         mProgressAnim.cancel();
         if (mService.playPrevious()) {
-            updatePlayIcon();
+            bindSongDetails(mService.getCurrentSong());
+        }
+    }
+
+    public void skipToPrevious() {
+        Log.d(LOG_TAG, "skipToPrevious");
+        mProgressAnim.cancel();
+        if (mService.skipToPrevious()) {
+            setProgressBarPosition(0);
+            bindSongDetails(mService.getCurrentSong());
+        }
+    }
+
+    public void skipToNext() {
+        Log.d(LOG_TAG, "skipToNext");
+        mProgressAnim.cancel();
+        if (mService.skipToNext()) {
+            setProgressBarPosition(0);
+            bindSongDetails(mService.getCurrentSong());
         }
     }
 
@@ -367,14 +397,8 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      * Updates the play icon based on the current state of the media player
      */
     private void updatePlayIcon() {
-        int resId = 0;
-
-        if (mService.isPlaying()) {
-            resId = android.R.drawable.ic_media_pause;
-        } else if (mService.isStopped() || mService.isPaused()) {
-            resId = android.R.drawable.ic_media_play;
-        }
-
+        Log.d(LOG_TAG, "updatePlayIcon() " + Boolean.toString(mService.isPlaying()));
+        int resId = mService.isPlaying() ? R.drawable.pause_button_selector : R.drawable.play_button_selector;
         mPlayButton.setImageResource(resId);
     }
 }
