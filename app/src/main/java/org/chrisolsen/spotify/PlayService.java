@@ -9,6 +9,7 @@ import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -255,8 +256,11 @@ public class PlayService extends Service {
         intent.putExtra("songs", mPlaylist);
         intent.putExtra("playIndex", mPlaylistIndex);
 
-        final PendingIntent pi = PendingIntent.getActivity(
-                getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        // need to create a task stack to allow the user to navigate up after opening app
+        // through a notification
+        final TaskStackBuilder taskBuilder = TaskStackBuilder.create(getApplicationContext());
+        taskBuilder.addParentStack(SongPlayerActivity.class);
+        taskBuilder.addNextIntent(intent);
 
         final Song song = getCurrentSong();
 
@@ -300,7 +304,7 @@ public class PlayService extends Service {
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
                 builder.setContentTitle(song.name)
                         .setShowWhen(false)
-                        .setContentIntent(pi)
+                        .setContentIntent(taskBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT))
                         .setSmallIcon(R.drawable.ic_spotify_notificatiopn)
                         .setLargeIcon(img)
                         .setContentText(song.album.artist.name)
