@@ -40,6 +40,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     // allow for later disconnection
     private ServiceConnection mPlayServiceConnection;
 
+    // fingerprints to identify the song list and position
     private String mNewFingerprint;
     private String mOldFingerprint;
 
@@ -145,7 +146,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
             mOldFingerprint = "";
         }
 
-        mNewFingerprint = Integer.toString(songs.hashCode()) + "-" + Integer.toString(songIndex);
+        mNewFingerprint = Integer.toString(songs.hashCode());
 
         initPlayer(songs, songIndex);
 
@@ -215,7 +216,8 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
                 mService.removeNotification();
 
                 // bind for initial song
-                resetProgressBar();
+                setProgressBarPosition(mService.getCurrentPosition());
+
                 bindSongDetails(songs[songIndex]);
 
                 mService.connect(songs, songIndex,
@@ -334,10 +336,6 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         if (mService.playPrevious()) {
             updatePlayIcon();
         }
-    }
-
-    private void resetProgressBar() {
-        setProgressBarPosition(-1);
     }
 
     private void setProgressBarPosition(int time) {

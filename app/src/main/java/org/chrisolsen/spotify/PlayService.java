@@ -111,6 +111,9 @@ public class PlayService extends Service {
     }
 
     public int getCurrentPosition() {
+        if (mPlayerState == PLAYER_STATE_STOPPED) {
+            return -1;
+        }
         return mMediaPlayer.getCurrentPosition();
     }
 
@@ -305,8 +308,6 @@ public class PlayService extends Service {
                         .setStyle(new NotificationCompat.MediaStyle()
                                 .setShowActionsInCompactView(0, 1, 2));
 
-
-                Log.d(LOG_TAG, "playyer state: " + mPlayerState);
                 builder.addAction(android.R.drawable.ic_media_previous, null, prevPIntent);
                 if (mPlayerState == PLAYER_STATE_PLAYING)
                     builder.addAction(android.R.drawable.ic_media_pause, null, pausePIntent);
