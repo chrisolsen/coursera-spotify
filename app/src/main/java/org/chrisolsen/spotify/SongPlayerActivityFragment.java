@@ -3,8 +3,10 @@ package org.chrisolsen.spotify;
 import android.animation.ValueAnimator;
 import android.app.Dialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcelable;
@@ -43,6 +45,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     // fingerprints to identify the song list and position
     private String mNewFingerprint;
     private String mOldFingerprint;
+    private boolean mDidPlay = false;
 
     /**
      * Helper method allowing this fragment to be initialized with some required data
@@ -140,16 +143,22 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
         int songIndex;
 
-        if (savedInstanceState != null) {
-            mOldFingerprint = savedInstanceState.getString("fingerprint");
-            songIndex = savedInstanceState.getInt("playIndex");
-        } else {
-            mOldFingerprint = "";
-            songIndex = getArguments().getInt("playIndex");
-        }
+        SharedPreferences settings = getActivity().getSharedPreferences("playerSettings", Context.MODE_PRIVATE);
+        mOldFingerprint = settings.getString("fingerprint", "");
+        Log.d(LOG_TAG, "fingerprint " + mOldFingerprint);
+
+        songIndex = getArguments().getInt("playIndex");
+        Log.d(LOG_TAG, "song index " + Integer.toString(songIndex));
 
         initPlayer(songs, songIndex);
-        mNewFingerprint = Integer.toString(songs.hashCode());
+
+        // identifies the current playlist state
+        mNewFingerprint = "";
+        for (Song song : songs) {
+            mNewFingerprint += song.hashCode();
+        }
+
+        mNewFingerprint += "-" + Integer.toString(songIndex);
 
         return view;
     }
@@ -162,14 +171,6 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         if (mService != null) {
             mService.removeNotification();
         }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        outState.putString("fingerprint", mNewFingerprint);
-        outState.putInt("playIndex", mService.getPlayListIndex());
-
-        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -192,6 +193,14 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     public void onDestroy() {
         Log.d(LOG_TAG, "onDestroy");
         super.onDestroy();
+
+        // save the new fingerprint if the user played the song
+        if (mDidPlay) {
+            SharedPreferences settings = getActivity().getSharedPreferences("playerSettings", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("fingerprint", mNewFingerprint);
+            editor.commit();
+        }
 
         // prevent dangling service connections
         getActivity().unbindService(mPlayServiceConnection);
@@ -218,8 +227,11 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
                 // ensure no notifications exist while the activity is active
                 mService.removeNotification();
 
-                // bind for initial song
-                setProgressBarPosition(mService.getCurrentPosition());
+                updatePlayIcon();
+
+                int position = mNewFingerprint.equals(mOldFingerprint) ? mService.getCurrentPosition() : -1;
+
+                setProgressBarPosition(position);
 
                 bindSongDetails(songs[songIndex]);
 
@@ -274,7 +286,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        boolean isNewPlaylist = mNewFingerprint != mOldFingerprint;
+        boolean isNewPlaylist = !mNewFingerprint.equals(mOldFingerprint);
 
         if (id == R.id.btn_play && mService.isStopped()) {
             // cancel it here, doing it inside `setPlayerPosition` results in the animation
@@ -302,6 +314,8 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         // update the state after the service calls
         if (id == R.id.btn_play) {
             updatePlayIcon();
+            Log.d(LOG_TAG, "saving fingerprint");
+            mDidPlay = true;
             mOldFingerprint = mNewFingerprint; // reset the old fingerprint now that we are playing the list
         }
     }
