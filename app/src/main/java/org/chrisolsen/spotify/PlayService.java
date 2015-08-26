@@ -93,8 +93,8 @@ public class PlayService extends Service {
 
     // Exposed service methods
 
-    public void connect(Song[] playList, int playListIndex, TrackReceivedListener trackReceivedListener, SongChangedListener songChangedListener) {
-        Log.d(LOG_TAG, "connect()");
+    public void load(Song[] playList, int playListIndex, TrackReceivedListener trackReceivedListener, SongChangedListener songChangedListener) {
+        Log.d(LOG_TAG, "load()");
         mPlaylist = playList;
         mPlaylistIndex = playListIndex;
         mOnReceiveListener = trackReceivedListener;
@@ -123,6 +123,7 @@ public class PlayService extends Service {
     }
 
     public int getPlayListIndex() {
+        Log.d("getPlayListIndex", Integer.toString(mPlaylistIndex));
         return mPlaylistIndex;
     }
 
