@@ -41,7 +41,8 @@ public class PlayService extends Service {
     private Song[] mPlaylist;
     private MediaPlayer mMediaPlayer = new MediaPlayer();
     private int mPlaylistIndex;
-    private int mPlayerState;
+    private int mPlayerPlayState;
+    private PlayerState mPlayerState;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -97,6 +98,7 @@ public class PlayService extends Service {
         Log.d(LOG_TAG, "load()");
         mPlaylist = playList;
         mPlaylistIndex = playListIndex;
+        mPlayerState = new PlayerState(getApplicationContext());
         mOnReceiveListener = trackReceivedListener;
         mSongChangeListener = songChangedListener;
     }
@@ -115,7 +117,7 @@ public class PlayService extends Service {
     }
 
     public int getCurrentPosition() {
-        if (mPlayerState == PLAYER_STATE_STOPPED) {
+        if (mPlayerPlayState == PLAYER_STATE_STOPPED) {
             return -1;
         }
         return mMediaPlayer.getCurrentPosition();
@@ -126,15 +128,15 @@ public class PlayService extends Service {
     }
 
     public boolean isPlaying() {
-        return mPlayerState == PLAYER_STATE_PLAYING;
+        return mPlayerPlayState == PLAYER_STATE_PLAYING;
     }
 
     public boolean isStopped() {
-        return mPlayerState == PLAYER_STATE_STOPPED;
+        return mPlayerPlayState == PLAYER_STATE_STOPPED;
     }
 
     public boolean isPaused() {
-        return mPlayerState == PLAYER_STATE_PAUSED;
+        return mPlayerPlayState == PLAYER_STATE_PAUSED;
     }
 
     public void seekTo(int time) {
@@ -182,7 +184,7 @@ public class PlayService extends Service {
                 }
             });
 
-            mPlayerState = PLAYER_STATE_PLAYING;
+            mPlayerPlayState = PLAYER_STATE_PLAYING;
             mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
@@ -209,6 +211,7 @@ public class PlayService extends Service {
         stop();
         if (mPlaylistIndex < mPlaylist.length - 1) {
             mPlaylistIndex++;
+            mPlayerState.setPlayListIndex(mPlaylistIndex);
             return true;
         }
         return false;
@@ -219,6 +222,7 @@ public class PlayService extends Service {
         stop();
         if (mPlaylistIndex > 0) {
             mPlaylistIndex--;
+            mPlayerState.setPlayListIndex(mPlaylistIndex);
             return true;
         }
         return false;
@@ -234,7 +238,7 @@ public class PlayService extends Service {
 
     public void pause() {
         Log.d(LOG_TAG, "pause");
-        mPlayerState = PLAYER_STATE_PAUSED;
+        mPlayerPlayState = PLAYER_STATE_PAUSED;
         mMediaPlayer.pause();
 
         // to allow the pause button to be converted to a play and handled appropriately
@@ -247,14 +251,14 @@ public class PlayService extends Service {
 
     public void resume() {
         Log.d(LOG_TAG, "resume");
-        mPlayerState = PLAYER_STATE_PLAYING;
+        mPlayerPlayState = PLAYER_STATE_PLAYING;
         mMediaPlayer.start();
         showNotification();
     }
 
     public void stop() {
         Log.d(LOG_TAG, "stop");
-        mPlayerState = PLAYER_STATE_STOPPED;
+        mPlayerPlayState = PLAYER_STATE_STOPPED;
         mMediaPlayer.stop();
         mMediaPlayer.reset();
     }
@@ -269,8 +273,6 @@ public class PlayService extends Service {
         Log.d(LOG_TAG, "showNotification");
 
         Intent intent = new Intent(getApplicationContext(), SongPlayerActivity.class);
-        intent.putExtra("songs", mPlaylist);
-        intent.putExtra("playIndex", mPlaylistIndex);
 
         // need to create a task stack to allow the user to navigate up after opening app
         // through a notification
@@ -329,7 +331,7 @@ public class PlayService extends Service {
                                 .setShowActionsInCompactView(0, 1, 2));
 
                 builder.addAction(android.R.drawable.ic_media_previous, null, prevPIntent);
-                if (mPlayerState == PLAYER_STATE_PLAYING)
+                if (mPlayerPlayState == PLAYER_STATE_PLAYING)
                     builder.addAction(android.R.drawable.ic_media_pause, null, pausePIntent);
                 else
                     builder.addAction(android.R.drawable.ic_media_play, null, resumePIntent);
