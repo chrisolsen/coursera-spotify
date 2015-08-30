@@ -61,7 +61,7 @@ public class PlayService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(LOG_TAG, "onStartCommand: " + intent.getAction());
+        Log.d(LOG_TAG, "onStartCommand");
         if (intent != null) {
             String action = intent.getAction();
             if (action != null) {
@@ -108,6 +108,9 @@ public class PlayService extends Service {
     }
 
     public Song getCurrentSong() {
+        if (mPlaylist == null) {
+            return null;
+        }
         return mPlaylist[mPlaylistIndex];
     }
 
@@ -116,15 +119,6 @@ public class PlayService extends Service {
             return -1;
         }
         return mMediaPlayer.getCurrentPosition();
-    }
-
-    public Song[] getPlayList() {
-        return mPlaylist;
-    }
-
-    public int getPlayListIndex() {
-        Log.d("getPlayListIndex", Integer.toString(mPlaylistIndex));
-        return mPlaylistIndex;
     }
 
     public int getPreviewDuration() {
@@ -150,11 +144,9 @@ public class PlayService extends Service {
     public void play() {
         Log.d(LOG_TAG, "play");
 
-        final Song song;
-
         try {
             // current song
-            song = mPlaylist[mPlaylistIndex];
+            final Song song = mPlaylist[mPlaylistIndex];
 
             Log.d(LOG_TAG, "song to play: " + song.name);
 
@@ -346,6 +338,10 @@ public class PlayService extends Service {
                 startForeground(1, builder.build());
             }
         }.execute();
+    }
+
+    public int getPlayListIndex() {
+        return mPlaylistIndex;
     }
 
     /**

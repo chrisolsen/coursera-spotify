@@ -28,8 +28,12 @@ public class ArtistTopSongsActivity
 
     @Override
     public void handleSongSelection(Song[] songs, int playIndex) {
+        PlayerState state = new PlayerState(this);
+        state.setPlayList(songs);
+        state.setPlayListIndex(playIndex);
+
         if (isTwoPane()) {
-            SongPlayerActivityFragment f = SongPlayerActivityFragment.newInstance(songs, playIndex);
+            SongPlayerActivityFragment f = SongPlayerActivityFragment.newInstance();
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.song_player_fragment, f)
@@ -39,8 +43,6 @@ public class ArtistTopSongsActivity
         }
 
         Intent i = new Intent(this, SongPlayerActivity.class);
-        i.putExtra("playIndex", playIndex);
-        i.putExtra("songs", songs);
         startActivity(i);
     }
 

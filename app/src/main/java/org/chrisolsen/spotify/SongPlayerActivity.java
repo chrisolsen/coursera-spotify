@@ -1,12 +1,11 @@
 package org.chrisolsen.spotify;
 
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 
 public class SongPlayerActivity extends AppCompatActivity {
 
-    private final String LOG_TAG = this.getClass().getSimpleName();
+    private final String TAG = this.getClass().getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -14,13 +13,7 @@ public class SongPlayerActivity extends AppCompatActivity {
         setContentView(R.layout.song_player_activity);
 
         if (savedInstanceState == null) {
-            Parcelable[] data = getIntent().getParcelableArrayExtra("songs");
-            Song[] songs = new Song[data.length];
-            for (int i = 0; i < data.length; i++) {
-                songs[i] = (Song) data[i];
-            }
-            int playIndex = getIntent().getIntExtra("playIndex", 0);
-            SongPlayerActivityFragment frag = SongPlayerActivityFragment.newInstance(songs, playIndex);
+            SongPlayerActivityFragment frag = SongPlayerActivityFragment.newInstance();
 
             getSupportFragmentManager()
                     .beginTransaction()

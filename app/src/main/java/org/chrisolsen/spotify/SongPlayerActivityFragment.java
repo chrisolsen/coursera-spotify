@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.util.Log;
@@ -20,12 +19,13 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
 public class SongPlayerActivityFragment extends DialogFragment implements View.OnClickListener {
 
-    private final String LOG_TAG = this.getClass().getSimpleName();
+    private final String TAG = this.getClass().getSimpleName();
 
     private TextView mSongNameText, mArtistNameText, mAlbumNameTest, mSongDuration, mSongPosition;
     private ImageView mAlbumImage;
@@ -39,21 +39,15 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
     // allow for later disconnection
     private ServiceConnection mPlayServiceConnection;
+    private PlayerState mPlayerState;
 
     /**
      * Helper method allowing this fragment to be initialized with some required data
      *
-     * @param songs List of songs
-     * @param playIndex Index of the song to be played
      * @return Generate fragment
      */
-    public static SongPlayerActivityFragment newInstance(Song[] songs, int playIndex) {
+    public static SongPlayerActivityFragment newInstance() {
         SongPlayerActivityFragment f = new SongPlayerActivityFragment();
-        Bundle b = new Bundle();
-        b.putParcelableArray("songs", songs);
-        b.putInt("playIndex", playIndex);
-        f.setArguments(b);
-
         return f;
     }
 
@@ -63,21 +57,6 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
     private static int convertToPercentPlayed(int duration, int time) {
         return (int) ((time * 1.0f) / duration * 100);
-    }
-
-    private static String fingerprint(Song[] songs, int index) {
-        if (songs == null) {
-            Log.d("fingerprint", "songs are null");
-            return "";
-        }
-
-        String fp = "";
-        for (Song song : songs) {
-            fp += song.hashCode();
-        }
-
-        fp += "-" + Integer.toString(index);
-        return fp;
     }
 
     private static String toTime(long seconds) {
@@ -99,12 +78,9 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(LOG_TAG, "in the onCreateView");
+        Log.d(TAG, "in the onCreateView");
 
         View view = inflater.inflate(R.layout.song_player_fragment, container, false);
-        if (getArguments() == null) {
-            return view;
-        }
 
         mSongNameText = (TextView) view.findViewById(R.id.song_name);
         mArtistNameText = (TextView) view.findViewById(R.id.artist_name);
@@ -140,60 +116,75 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         mPlayButton.setOnClickListener(this);
         nextButton.setOnClickListener(this);
 
-        bindToService();
-        bindSongDetails(getPlayListArg()[getPlayListIndexArg()]);
-
         return view;
+    }
+
+    @Override
+    public void onViewStateRestored(Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+
+        mPlayerState = new PlayerState(getActivity());
+        bindToService();
     }
 
     private void bindToService() {
         Intent intent = new Intent(getActivity(), PlayService.class);
 
+        // prevent user from clicking play button, while app is waiting for the track
+        // mPlayButton.setEnabled(false);
+
         mPlayServiceConnection = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder binder) {
-                Log.d(LOG_TAG, "onServiceConnected");
+                Log.d(TAG, "onServiceConnected");
+
+                if (mProgressAnim != null) {
+                    mProgressAnim.cancel();
+                }
+
                 mService = ((PlayService.SongBinder) binder).getService();
                 mService.removeNotification();
 
-                bindPlayer();
+                Song playerSong = mService.getCurrentSong();
+                Song stateSong = mPlayerState.getPlayList()[mPlayerState.getPlayListIndex()];
+
+                boolean newSong = !stateSong.equals(playerSong);
+
+                mService.load(mPlayerState.getPlayList(), mPlayerState.getPlayListIndex(),
+                        new PlayService.TrackReceivedListener() {
+                            @Override
+                            public void onReceived() {
+                                Log.d(TAG, "TrackReceivedListener.onReceived");
+                                mPlayButton.setEnabled(true);
+                            }
+                        },
+                        new PlayService.SongChangedListener() {
+                            @Override
+                            public void onChanged(Song song) {
+                                Log.d(TAG, "SongChangedListener.onChanged");
+                                bindSongDetails(song); // needed for songs other than the first
+                            }
+                        }
+                );
+
+                if (newSong) {
+                    Log.d(TAG, "onServiceConnected: mService.play()");
+                    mService.play();
+                }
+
+                setProgressBarPosition(mService.getCurrentPosition());
+                updatePlayerControls();
+                bindSongDetails(mService.getCurrentSong()); // needed for songs other than the first
             }
 
             @Override
             public void onServiceDisconnected(ComponentName name) {
-                Log.d(LOG_TAG, "onServiceDisconnected");
+                Log.d(TAG, "onServiceDisconnected");
             }
         };
 
         getActivity().startService(intent);
         getActivity().bindService(intent, mPlayServiceConnection, 0);
-    }
-
-    private boolean matchesServiceState() {
-        String fp = fingerprint(getPlayListArg(), getPlayListIndexArg());
-        String serviceFingerprint = fingerprint(mService.getPlayList(), mService.getPlayListIndex());
-
-        Log.d("fingerprints", fp + "  " + serviceFingerprint);
-        Log.d("matchesServiceState", Boolean.toString(fp.equals(serviceFingerprint)));
-
-        return fp.equals(serviceFingerprint);
-    }
-
-    private Song[] getPlayListArg() {
-        Parcelable[] plist = getArguments().getParcelableArray("songs");
-        int playListLength = plist != null ? plist.length : 0;
-        Song[] songs = new Song[playListLength];
-        for (int i = 0; i < playListLength; i++) {
-            songs[i] = (Song) plist[i];
-        }
-
-        return songs;
-    }
-
-    private int getPlayListIndexArg() {
-        int songIndex = getArguments().getInt("playIndex");
-        Log.d(LOG_TAG, "song index " + Integer.toString(songIndex));
-        return songIndex;
     }
 
     @Override
@@ -208,7 +199,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
     @Override
     public void onStop() {
-        Log.d(LOG_TAG, "onStop");
+        Log.d(TAG, "onStop");
         super.onStop();
 
         // if no song was started, mService will be null
@@ -224,7 +215,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      */
     @Override
     public void onDestroy() {
-        Log.d(LOG_TAG, "onDestroy");
+        Log.d(TAG, "onDestroy");
         super.onDestroy();
 
         // prevent dangling service connections
@@ -235,18 +226,16 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     /**
      * Sets up and binds the player and service connection
      */
-    private void bindPlayer() {
-        Log.d(LOG_TAG, "bindPlayer");
+    private void updatePlayerControls() {
+        Log.d(TAG, "updatePlayerControls - playing: " + Boolean.toString(mService.isPlaying()));
 
-        if (matchesServiceState()) {
-            setProgressBarPosition(mService.getCurrentPosition());
+        setProgressBarPosition(mService.getCurrentPosition());
 
-            // button icon
-            if (mService.isPlaying()) {
-                mPlayButton.setImageResource(R.drawable.pause_button_selector);
-            } else {
-                mPlayButton.setImageResource(R.drawable.play_button_selector);
-            }
+        // button icon
+        if (mService.isPlaying()) {
+            mPlayButton.setImageResource(R.drawable.pause_button_selector);
+        } else {
+            mPlayButton.setImageResource(R.drawable.play_button_selector);
         }
     }
 
@@ -264,26 +253,6 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         return dialog;
     }
 
-    private void play() {
-        mService.load(getPlayListArg(), getPlayListIndexArg(),
-                new PlayService.TrackReceivedListener() {
-                    @Override
-                    public void onReceived() {
-                        Log.d(LOG_TAG, "TrackReceivedListener.onReceived");
-                        bindPlayer();
-                    }
-                },
-                new PlayService.SongChangedListener() {
-                    @Override
-                    public void onChanged(Song song) {
-                        Log.d(LOG_TAG, "SongChangedListener.onChanged");
-                        bindSongDetails(song);
-                    }
-                }
-        );
-        mService.play();
-    }
-
     /**
      * Handler for all the ui buttons
      *
@@ -292,21 +261,14 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        boolean isNewPlaylist = !matchesServiceState();
+        Log.d(TAG, "onClick");
 
         if (id == R.id.btn_play && mService.isStopped()) {
-            // cancel it here, doing it inside `setPlayerPosition` results in the animation
-            // event from continually making reference to the a no longer valid mMediaPlayer
-            if (mProgressAnim != null) {
-                mProgressAnim.cancel();
-            }
-            play();
-        } else if (id == R.id.btn_play && isNewPlaylist) {
             play();
         } else if (id == R.id.btn_play && mService.isPlaying()) {
-            mService.pause();
+            pause();
         } else if (id == R.id.btn_play && mService.isPaused()) {
-            mService.resume();
+            resume();
         } else if (id == R.id.btn_previous_song && (mService.isPaused() || mService.isStopped())) {
             skipToPrevious();
         } else if (id == R.id.btn_previous_song && mService.isPlaying()) {
@@ -315,6 +277,8 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
             skipToNext();
         } else if (id == R.id.btn_next_song && mService.isPlaying()) {
             playNext();
+        } else {
+            Toast.makeText(getActivity(), "Unhandled click event yo!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -322,6 +286,11 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      * Binds the current song's details with the image and titles
      */
     private void bindSongDetails(Song song) {
+        Log.d("bindSongDetails", song.name);
+
+        // save the new song
+        mPlayerState.setPlayListIndex(mService.getPlayListIndex());
+
         mSongNameText.setText(song.name);
 
         // artist / album details
@@ -340,12 +309,31 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
                 .into(mAlbumImage);
     }
 
+    private void pause() {
+        mService.pause();
+        updatePlayerControls();
+    }
+
+    private void resume() {
+        mService.resume();
+        updatePlayerControls();
+    }
+
+    public void play() {
+        Log.d(TAG, "play");
+        mProgressAnim.cancel();
+        mPlayButton.setEnabled(false);  // will be re-enabled once the song is retrieved
+        mService.play();
+        bindSongDetails(mService.getCurrentSong());
+    }
+
     /**
      * Play the next track
      */
     public void playNext() {
-        Log.d(LOG_TAG, "playNext");
+        Log.d(TAG, "playNext");
         mProgressAnim.cancel();
+        mPlayButton.setEnabled(false);  // will be re-enabled once the song is retrieved
         if (mService.playNext()) {
             bindSongDetails(mService.getCurrentSong());
         }
@@ -355,15 +343,16 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
      * Play the previous track
      */
     public void playPrevious() {
-        Log.d(LOG_TAG, "playPrevious");
+        Log.d(TAG, "playPrevious");
         mProgressAnim.cancel();
+        mPlayButton.setEnabled(false);  // will be re-enabled once the song is retrieved
         if (mService.playPrevious()) {
             bindSongDetails(mService.getCurrentSong());
         }
     }
 
     public void skipToPrevious() {
-        Log.d(LOG_TAG, "skipToPrevious");
+        Log.d(TAG, "skipToPrevious");
         mProgressAnim.cancel();
         if (mService.skipToPrevious()) {
             setProgressBarPosition(0);
@@ -372,7 +361,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     }
 
     public void skipToNext() {
-        Log.d(LOG_TAG, "skipToNext");
+        Log.d(TAG, "skipToNext");
         mProgressAnim.cancel();
         if (mService.skipToNext()) {
             setProgressBarPosition(0);
@@ -385,6 +374,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
 
         mProgressAnim = ValueAnimator.ofInt(0, duration);
         mProgressAnim.setDuration(duration);
+        mProgressAnim.setRepeatCount(ValueAnimator.INFINITE);  // HACK: without this the progress bar will unexpectedly stop
         mProgressAnim.setInterpolator(new DecelerateInterpolator());
         mProgressAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -392,6 +382,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
                 int time = mService.getCurrentPosition();
                 int percent = convertToPercentPlayed(mService.getPreviewDuration(), time);
 
+                Log.d(TAG, "setProgressBarPosition" + Integer.toString(time));
                 mSongPosition.setText(toTime(time / 1000));
                 mSeekBar.setProgress(percent);
             }

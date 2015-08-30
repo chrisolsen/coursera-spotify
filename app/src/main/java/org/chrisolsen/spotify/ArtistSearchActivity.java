@@ -49,14 +49,16 @@ public class ArtistSearchActivity
     @Override
     public void handleSongSelection(Song[] songs, int playIndex) {
         FragmentManager mgr = getSupportFragmentManager();
-        SongPlayerActivityFragment frag = SongPlayerActivityFragment.newInstance(songs, playIndex);
+        SongPlayerActivityFragment frag = SongPlayerActivityFragment.newInstance();
+
+        PlayerState state = new PlayerState(this);
+        state.setPlayList(songs);
+        state.setPlayListIndex(playIndex);
 
         if (isTwoPane()) {
             frag.show(mgr, "song");
         } else {
             Intent i = new Intent(this, SongPlayerActivity.class);
-            i.putExtra("songs", songs);
-            i.putExtra("playIndex", playIndex);
             startActivity(i);
         }
     }

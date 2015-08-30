@@ -35,6 +35,13 @@ public class Song implements Parcelable {
         this.explicit = in.readByte() != 0;
     }
 
+    public boolean equals(Song s) {
+        if (s == null) {
+            return false;
+        }
+        return this.name.equals(s.name);
+    }
+
     @Override
     public int hashCode() {
         return url.hashCode();
