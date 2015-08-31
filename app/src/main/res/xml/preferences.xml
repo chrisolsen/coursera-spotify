@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:key="pref_country"
+        android:title="Country"
+        android:entries="@array/countries"
+        android:defaultValue="US" />
+    <CheckBoxPreference
+        android:key="pref_show_notification_in_drawer"
+        android:title="@string/pref_show_notification_in_drawer"
+        android:defaultValue="true" />
+    <CheckBoxPreference
+        android:key="pref_show_notifications_on_lock_screen"
+        android:title="@string/pref_show_notification_on_drawer"
+        android:defaultValue="true" />
+</PreferenceScreen>

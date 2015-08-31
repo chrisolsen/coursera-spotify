@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
 // TODO: Add accessability to app https://www.udacity.com/course/viewer#!/c-ud853-nd/l-1623168625/e-1667758627/m-1667758629
 
@@ -24,6 +26,23 @@ public class ArtistSearchActivity
         if (isTwoPane() && savedInstanceState == null) {
             loadDetailsFragment(null);
         }
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.menu.menu_main:
+
+                return true;
+        }
+        return false;
     }
 
     /**

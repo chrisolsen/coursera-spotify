@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Spotify Streamer</string>
-    <string name="action_settings">Settings</string>
     <string name="artists_no_results">No albums could be found</string>
     <string name="artists_search_instructions">Search for artists by name</string>
     <string name="title_activity_artist_top_songs">Top 10 Tracks</string>
@@ -14,4 +13,7 @@
     <string name="title_activity_song_player">SongPlayerActivity</string>
     <string name="error_fetching_audio">Error fetching stream</string>
     <string name="share_title">Share url with</string>
+    <string name="menu_settings">Settings</string>
+    <string name="pref_show_notification_in_drawer">Show notification in drawer</string>
+    <string name="pref_show_notification_on_drawer">Show notification on lock screen</string>
 </resources>
