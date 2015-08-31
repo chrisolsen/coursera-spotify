@@ -1,251 +1,251 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="countries">
-        <item>AF</item>
-        <item>AX</item>
-        <item>AL</item>
-        <item>DZ</item>
-        <item>AS</item>
         <item>AD</item>
-        <item>AO</item>
-        <item>AI</item>
-        <item>AQ</item>
+        <item>AE</item>
+        <item>AF</item>
         <item>AG</item>
-        <item>AR</item>
+        <item>AI</item>
+        <item>AL</item>
         <item>AM</item>
-        <item>AW</item>
-        <item>AU</item>
+        <item>AN</item>
+        <item>AO</item>
+        <item>AQ</item>
+        <item>AR</item>
+        <item>AS</item>
         <item>AT</item>
+        <item>AU</item>
+        <item>AW</item>
+        <item>AX</item>
         <item>AZ</item>
-        <item>BS</item>
-        <item>BH</item>
-        <item>BD</item>
-        <item>BB</item>
-        <item>BY</item>
-        <item>BE</item>
-        <item>BZ</item>
-        <item>BJ</item>
-        <item>BM</item>
-        <item>BT</item>
-        <item>BO</item>
         <item>BA</item>
-        <item>BW</item>
-        <item>BV</item>
-        <item>BR</item>
-        <item>VG</item>
-        <item>IO</item>
-        <item>BN</item>
-        <item>BG</item>
+        <item>BB</item>
+        <item>BD</item>
+        <item>BE</item>
         <item>BF</item>
+        <item>BG</item>
+        <item>BH</item>
         <item>BI</item>
-        <item>KH</item>
-        <item>CM</item>
+        <item>BJ</item>
+        <item>BL</item>
+        <item>BM</item>
+        <item>BN</item>
+        <item>BO</item>
+        <item>BR</item>
+        <item>BS</item>
+        <item>BT</item>
+        <item>BV</item>
+        <item>BW</item>
+        <item>BY</item>
+        <item>BZ</item>
         <item>CA</item>
-        <item>CV</item>
-        <item>KY</item>
-        <item>CF</item>
-        <item>TD</item>
-        <item>CL</item>
-        <item>CN</item>
-        <item>HK</item>
-        <item>MO</item>
-        <item>CX</item>
         <item>CC</item>
-        <item>CO</item>
-        <item>KM</item>
-        <item>CG</item>
         <item>CD</item>
-        <item>CK</item>
-        <item>CR</item>
+        <item>CF</item>
+        <item>CG</item>
+        <item>CH</item>
         <item>CI</item>
-        <item>HR</item>
+        <item>CK</item>
+        <item>CL</item>
+        <item>CM</item>
+        <item>CN</item>
+        <item>CO</item>
+        <item>CR</item>
         <item>CU</item>
+        <item>CV</item>
+        <item>CX</item>
         <item>CY</item>
         <item>CZ</item>
-        <item>DK</item>
+        <item>DE</item>
         <item>DJ</item>
+        <item>DK</item>
         <item>DM</item>
         <item>DO</item>
+        <item>DZ</item>
         <item>EC</item>
-        <item>EG</item>
-        <item>SV</item>
-        <item>GQ</item>
-        <item>ER</item>
         <item>EE</item>
+        <item>EG</item>
+        <item>EH</item>
+        <item>ER</item>
+        <item>ES</item>
         <item>ET</item>
-        <item>FK</item>
-        <item>FO</item>
-        <item>FJ</item>
         <item>FI</item>
+        <item>FJ</item>
+        <item>FK</item>
+        <item>FM</item>
+        <item>FO</item>
         <item>FR</item>
-        <item>GF</item>
-        <item>PF</item>
-        <item>TF</item>
         <item>GA</item>
-        <item>GM</item>
+        <item>GB</item>
+        <item>GD</item>
         <item>GE</item>
-        <item>DE</item>
+        <item>GF</item>
+        <item>GG</item>
         <item>GH</item>
         <item>GI</item>
-        <item>GR</item>
         <item>GL</item>
-        <item>GD</item>
-        <item>GP</item>
-        <item>GU</item>
-        <item>GT</item>
-        <item>GG</item>
+        <item>GM</item>
         <item>GN</item>
+        <item>GP</item>
+        <item>GQ</item>
+        <item>GR</item>
+        <item>GS</item>
+        <item>GT</item>
+        <item>GU</item>
         <item>GW</item>
         <item>GY</item>
-        <item>HT</item>
+        <item>HK</item>
         <item>HM</item>
-        <item>VA</item>
         <item>HN</item>
+        <item>HR</item>
+        <item>HT</item>
         <item>HU</item>
-        <item>IS</item>
-        <item>IN</item>
         <item>ID</item>
-        <item>IR</item>
-        <item>IQ</item>
         <item>IE</item>
-        <item>IM</item>
         <item>IL</item>
+        <item>IM</item>
+        <item>IN</item>
+        <item>IO</item>
+        <item>IQ</item>
+        <item>IR</item>
+        <item>IS</item>
         <item>IT</item>
-        <item>JM</item>
-        <item>JP</item>
         <item>JE</item>
+        <item>JM</item>
         <item>JO</item>
-        <item>KZ</item>
+        <item>JP</item>
         <item>KE</item>
+        <item>KG</item>
+        <item>KH</item>
         <item>KI</item>
+        <item>KM</item>
+        <item>KN</item>
         <item>KP</item>
         <item>KR</item>
         <item>KW</item>
-        <item>KG</item>
+        <item>KY</item>
+        <item>KZ</item>
         <item>LA</item>
-        <item>LV</item>
         <item>LB</item>
-        <item>LS</item>
-        <item>LR</item>
-        <item>LY</item>
+        <item>LC</item>
         <item>LI</item>
+        <item>LK</item>
+        <item>LR</item>
+        <item>LS</item>
         <item>LT</item>
         <item>LU</item>
-        <item>MK</item>
+        <item>LV</item>
+        <item>LY</item>
+        <item>MA</item>
+        <item>MC</item>
+        <item>MD</item>
+        <item>ME</item>
+        <item>MF</item>
         <item>MG</item>
-        <item>MW</item>
-        <item>MY</item>
-        <item>MV</item>
-        <item>ML</item>
-        <item>MT</item>
         <item>MH</item>
+        <item>MK</item>
+        <item>ML</item>
+        <item>MM</item>
+        <item>MN</item>
+        <item>MO</item>
+        <item>MP</item>
         <item>MQ</item>
         <item>MR</item>
-        <item>MU</item>
-        <item>YT</item>
-        <item>MX</item>
-        <item>FM</item>
-        <item>MD</item>
-        <item>MC</item>
-        <item>MN</item>
-        <item>ME</item>
         <item>MS</item>
-        <item>MA</item>
+        <item>MT</item>
+        <item>MU</item>
+        <item>MV</item>
+        <item>MW</item>
+        <item>MX</item>
+        <item>MY</item>
         <item>MZ</item>
-        <item>MM</item>
         <item>NA</item>
-        <item>NR</item>
-        <item>NP</item>
-        <item>NL</item>
-        <item>AN</item>
         <item>NC</item>
-        <item>NZ</item>
-        <item>NI</item>
         <item>NE</item>
-        <item>NG</item>
-        <item>NU</item>
         <item>NF</item>
-        <item>MP</item>
+        <item>NG</item>
+        <item>NI</item>
+        <item>NL</item>
         <item>NO</item>
+        <item>NP</item>
+        <item>NR</item>
+        <item>NU</item>
+        <item>NZ</item>
         <item>OM</item>
-        <item>PK</item>
-        <item>PW</item>
-        <item>PS</item>
         <item>PA</item>
-        <item>PG</item>
-        <item>PY</item>
         <item>PE</item>
+        <item>PF</item>
+        <item>PG</item>
         <item>PH</item>
-        <item>PN</item>
+        <item>PK</item>
         <item>PL</item>
-        <item>PT</item>
+        <item>PM</item>
+        <item>PN</item>
         <item>PR</item>
+        <item>PS</item>
+        <item>PT</item>
+        <item>PW</item>
+        <item>PY</item>
         <item>QA</item>
         <item>RE</item>
         <item>RO</item>
+        <item>RS</item>
         <item>RU</item>
         <item>RW</item>
-        <item>BL</item>
-        <item>SH</item>
-        <item>KN</item>
-        <item>LC</item>
-        <item>MF</item>
-        <item>PM</item>
-        <item>VC</item>
-        <item>WS</item>
-        <item>SM</item>
-        <item>ST</item>
         <item>SA</item>
-        <item>SN</item>
-        <item>RS</item>
-        <item>SC</item>
-        <item>SL</item>
-        <item>SG</item>
-        <item>SK</item>
-        <item>SI</item>
         <item>SB</item>
-        <item>SO</item>
-        <item>ZA</item>
-        <item>GS</item>
-        <item>SS</item>
-        <item>ES</item>
-        <item>LK</item>
+        <item>SC</item>
         <item>SD</item>
-        <item>SR</item>
-        <item>SJ</item>
-        <item>SZ</item>
         <item>SE</item>
-        <item>CH</item>
+        <item>SG</item>
+        <item>SH</item>
+        <item>SI</item>
+        <item>SJ</item>
+        <item>SK</item>
+        <item>SL</item>
+        <item>SM</item>
+        <item>SN</item>
+        <item>SO</item>
+        <item>SR</item>
+        <item>SS</item>
+        <item>ST</item>
+        <item>SV</item>
         <item>SY</item>
-        <item>TW</item>
-        <item>TJ</item>
-        <item>TZ</item>
-        <item>TH</item>
-        <item>TL</item>
-        <item>TG</item>
-        <item>TK</item>
-        <item>TO</item>
-        <item>TT</item>
-        <item>TN</item>
-        <item>TR</item>
-        <item>TM</item>
+        <item>SZ</item>
         <item>TC</item>
+        <item>TD</item>
+        <item>TF</item>
+        <item>TG</item>
+        <item>TH</item>
+        <item>TJ</item>
+        <item>TK</item>
+        <item>TL</item>
+        <item>TM</item>
+        <item>TN</item>
+        <item>TO</item>
+        <item>TR</item>
+        <item>TT</item>
         <item>TV</item>
-        <item>UG</item>
+        <item>TW</item>
+        <item>TZ</item>
         <item>UA</item>
-        <item>AE</item>
-        <item>GB</item>
-        <item>US</item>
+        <item>UG</item>
         <item>UM</item>
+        <item>US</item>
         <item>UY</item>
         <item>UZ</item>
-        <item>VU</item>
+        <item>VA</item>
+        <item>VC</item>
         <item>VE</item>
-        <item>VN</item>
+        <item>VG</item>
         <item>VI</item>
+        <item>VN</item>
+        <item>VU</item>
         <item>WF</item>
-        <item>EH</item>
+        <item>WS</item>
         <item>YE</item>
+        <item>YT</item>
+        <item>ZA</item>
         <item>ZM</item>
         <item>ZW</item>
     </string-array>
