@@ -9,8 +9,13 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -40,6 +45,7 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
     // allow for later disconnection
     private ServiceConnection mPlayServiceConnection;
     private PlayerState mPlayerState;
+    private ShareActionProvider mShareActionProvider;
 
     /**
      * Helper method allowing this fragment to be initialized with some required data
@@ -116,8 +122,58 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
         mPlayButton.setOnClickListener(this);
         nextButton.setOnClickListener(this);
 
+        this.setHasOptionsMenu(true);
+
         return view;
     }
+
+    /**
+     * Initialize the contents of the Activity's standard options menu.  You
+     * should place your menu items in to <var>menu</var>.  For this method
+     * to be called, you must have first called {@link #setHasOptionsMenu}.  See
+     * {@link Activity#onCreateOptionsMenu(Menu) Activity.onCreateOptionsMenu}
+     * for more information.
+     *
+     * @param menu     The options menu in which you place your items.
+     * @param inflater
+     * @see #setHasOptionsMenu
+     * @see #onPrepareOptionsMenu
+     * @see #onOptionsItemSelected
+     */
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_song_player, menu);
+        MenuItem item = menu.findItem(R.id.menu_item_share);
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+    }
+
+    /**
+     * Allow for sharing of the song
+     *
+     * @param item The menu item that was selected.
+     * @return boolean Return false to allow normal menu processing to
+     * proceed, true to consume it here.
+     * @see #onCreateOptionsMenu
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Song song = mService.getCurrentSong();
+
+        switch (item.getItemId()) {
+            case R.id.menu_item_share:
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_SEND);
+                intent.putExtra(Intent.EXTRA_TEXT, song.href);
+                intent.putExtra(Intent.EXTRA_SUBJECT, song.name);
+                intent.setType("text/plain");
+                startActivity(Intent.createChooser(intent, getResources().getString(R.string.share_title)));
+
+                return true;
+        }
+
+        return false;
+    }
+
 
     @Override
     public void onViewStateRestored(Bundle savedInstanceState) {
@@ -382,7 +438,6 @@ public class SongPlayerActivityFragment extends DialogFragment implements View.O
                 int time = mService.getCurrentPosition();
                 int percent = convertToPercentPlayed(mService.getPreviewDuration(), time);
 
-                Log.d(TAG, "setProgressBarPosition" + Integer.toString(time));
                 mSongPosition.setText(toTime(time / 1000));
                 mSeekBar.setProgress(percent);
             }

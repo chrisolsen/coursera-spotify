@@ -15,7 +15,7 @@ public class Song implements Parcelable {
         }
     };
     Album album;
-    String songId, name, url, previewUrl;
+    String songId, name, href, previewUrl;
     long duration;
     int popularity;
     boolean explicit;
@@ -28,7 +28,7 @@ public class Song implements Parcelable {
         this.album = in.readParcelable(Album.class.getClassLoader());
         this.songId = in.readString();
         this.name = in.readString();
-        this.url = in.readString();
+        this.href = in.readString();
         this.previewUrl = in.readString();
         this.duration = in.readLong();
         this.popularity = in.readInt();
@@ -44,7 +44,7 @@ public class Song implements Parcelable {
 
     @Override
     public int hashCode() {
-        return url.hashCode();
+        return href.hashCode();
     }
 
     @Override
@@ -57,7 +57,7 @@ public class Song implements Parcelable {
         dest.writeParcelable(this.album, 0);
         dest.writeString(this.songId);
         dest.writeString(this.name);
-        dest.writeString(this.url);
+        dest.writeString(this.href);
         dest.writeString(this.previewUrl);
         dest.writeLong(this.duration);
         dest.writeInt(this.popularity);

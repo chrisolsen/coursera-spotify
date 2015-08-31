@@ -13,4 +13,5 @@
     <string name="no_internet">No internet is available. Try again later.</string>
     <string name="title_activity_song_player">SongPlayerActivity</string>
     <string name="error_fetching_audio">Error fetching stream</string>
+    <string name="share_title">Share url with</string>
 </resources>

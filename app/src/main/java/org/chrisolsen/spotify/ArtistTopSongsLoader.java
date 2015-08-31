@@ -56,7 +56,7 @@ public class ArtistTopSongsLoader extends AsyncTaskLoader<List<Song>> {
             song.album.artist.name = t.artists.get(0).name;
             song.album.name = t.album.name;
             song.name = t.name;
-            song.url = t.uri;
+            song.href = t.href;
             song.previewUrl = t.preview_url;
             song.duration = t.duration_ms;
             song.popularity = t.popularity;
