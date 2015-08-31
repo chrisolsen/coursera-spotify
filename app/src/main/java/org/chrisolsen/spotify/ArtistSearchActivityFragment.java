@@ -27,21 +27,14 @@ import java.util.List;
 
 public class ArtistSearchActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Artist>> {
 
-    protected interface ArtistSelectionHandler {
-        void handleArtistSelection(Artist artist);
-    }
-
-    private final String LOG_TAG = this.getClass().getSimpleName();
     private static final int LOADER_ARTIST_SEARCH = 0;
-
+    private final String TAG = this.getClass().getSimpleName();
     private ArtistSearchAdapter mArtistSearchAdapter;
-
     private ListView mListView;
     private SearchView mSearchText;
     private View mNoResults;
     private View mSearchInstructions;
     private InputMethodManager mImm;
-
     private Artist[] mSearchResults;
 
     @Override
@@ -55,7 +48,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         // TODO: move the search box into the activity and actionbar
 
         // views
-        mListView = (ListView)layout.findViewById(android.R.id.list);
+        mListView = (ListView) layout.findViewById(android.R.id.list);
         mNoResults = layout.findViewById(android.R.id.empty);
         mSearchInstructions = layout.findViewById(R.id.artists_search_instructions);
 
@@ -128,7 +121,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
         mSearchResults = new Artist[data.length];
         for (int i = 0; i < data.length; i++) {
-            mSearchResults[i] = (Artist)data[i];
+            mSearchResults[i] = (Artist) data[i];
         }
 
         // bind data
@@ -182,12 +175,10 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         if (!hasFilter && !hasData) {
             mListView.setVisibility(View.GONE);
             mNoResults.setVisibility(View.GONE);
-        } else
-        if (hasFilter && hasData) {
+        } else if (hasFilter && hasData) {
             mListView.setVisibility(View.VISIBLE);
             mNoResults.setVisibility(View.GONE);
-        } else
-        if (hasFilter && !hasData) {
+        } else if (hasFilter && !hasData) {
             mListView.setVisibility(View.GONE);
             mNoResults.setVisibility(View.VISIBLE);
         }
@@ -210,6 +201,7 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
 
     /**
      * Helper method to whether a network is available
+     *
      * @return boolean
      */
     private boolean hasNetworkAccess() {
@@ -230,6 +222,10 @@ public class ArtistSearchActivityFragment extends Fragment implements LoaderMana
         if (lm.getLoader(LOADER_ARTIST_SEARCH) != null) {
             lm.initLoader(LOADER_ARTIST_SEARCH, null, this);
         }
+    }
+
+    protected interface ArtistSelectionHandler {
+        void handleArtistSelection(Artist artist);
     }
 
 }

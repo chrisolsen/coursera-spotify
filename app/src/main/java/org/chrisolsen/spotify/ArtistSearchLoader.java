@@ -18,7 +18,7 @@ import kaaes.spotify.webapi.android.models.Image;
 
 public class ArtistSearchLoader extends AsyncTaskLoader<List<org.chrisolsen.spotify.Artist>> {
 
-    private final String LOG_TAG = this.getClass().getSimpleName();
+    private final String TAG = this.getClass().getSimpleName();
     private final String mSearchText;
 
     private SpotifyService mSpotifyApi;

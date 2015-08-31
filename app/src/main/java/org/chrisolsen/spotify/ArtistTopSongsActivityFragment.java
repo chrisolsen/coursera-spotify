@@ -29,10 +29,6 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
 
     public ArtistTopSongsActivityFragment() {}
 
-    public interface SongSelectHandler {
-        void handleSongSelection(Song[] songs, int playIndex);
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -50,16 +46,16 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
             return view;
         }
 
-        mListView = (ListView)view.findViewById(android.R.id.list);
+        mListView = (ListView) view.findViewById(android.R.id.list);
         mNoResults = view.findViewById(android.R.id.empty);
 
         mArtistId = artist.artistId;
 
         try {
-            AppCompatActivity a = (AppCompatActivity)getActivity();
+            AppCompatActivity a = (AppCompatActivity) getActivity();
             a.getSupportActionBar().setTitle(R.string.title_activity_artist_top_songs);
             a.getSupportActionBar().setSubtitle(artist.name);
-        } catch(NullPointerException ignored) {
+        } catch (NullPointerException ignored) {
             Toast.makeText(this.getActivity(), "An error occurred", Toast.LENGTH_SHORT).show();
             return null;
         }
@@ -67,7 +63,7 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
         mListView.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                SongSelectHandler handler = (SongSelectHandler)getActivity();
+                SongSelectHandler handler = (SongSelectHandler) getActivity();
                 handler.handleSongSelection(mSongs, position);
             }
         });
@@ -83,7 +79,7 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
             Parcelable[] data = savedInstanceState.getParcelableArray("songs");
             Song[] songs = new Song[data.length];
             for (int i = 0; i < data.length; i++) {
-                songs[i] = (Song)data[i];
+                songs[i] = (Song) data[i];
             }
 
             bindSongs(songs);
@@ -122,7 +118,10 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
     @Override
     public void onLoadFinished(Loader<List<Song>> loader, List<Song> songs) {
         if (mSongs != null) return;
-
+        if (songs == null) {
+            Toast.makeText(getActivity(), "Looks like your country is allowed access YO!", Toast.LENGTH_SHORT).show();
+            songs = new ArrayList<>(0);
+        }
         Song[] songArr = new Song[songs.size()];
         songs.toArray(songArr);
         bindSongs(songArr);
@@ -145,5 +144,9 @@ public class ArtistTopSongsActivityFragment extends Fragment implements LoaderMa
     public void onLoaderReset(Loader<List<Song>> loader) {
         mAdapter.clear();
         mAdapter.notifyDataSetChanged();
+    }
+
+    public interface SongSelectHandler {
+        void handleSongSelection(Song[] songs, int playIndex);
     }
 }

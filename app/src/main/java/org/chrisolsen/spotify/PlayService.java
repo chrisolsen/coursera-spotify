@@ -3,12 +3,14 @@ package org.chrisolsen.spotify;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
@@ -33,7 +35,7 @@ public class PlayService extends Service {
     private static final int PLAYER_STATE_PLAYING = 1;
     private static final int PLAYER_STATE_PAUSED = 2;
 
-    private final String LOG_TAG = PlayService.class.getSimpleName();
+    private final String TAG = PlayService.class.getSimpleName();
     private TrackReceivedListener mOnReceiveListener;
     private SongChangedListener mSongChangeListener;
     private SongBinder mBinder = new SongBinder();
@@ -54,7 +56,7 @@ public class PlayService extends Service {
      */
     @Override
     public void onDestroy() {
-        Log.d(LOG_TAG, "onDestroy");
+        Log.d(TAG, "onDestroy");
         super.onDestroy();
         mMediaPlayer.release();
         mMediaPlayer = null;
@@ -62,7 +64,7 @@ public class PlayService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(LOG_TAG, "onStartCommand");
+        Log.d(TAG, "onStartCommand");
         if (intent != null) {
             String action = intent.getAction();
             if (action != null) {
@@ -95,7 +97,7 @@ public class PlayService extends Service {
     // Exposed service methods
 
     public void load(Song[] playList, int playListIndex, TrackReceivedListener trackReceivedListener, SongChangedListener songChangedListener) {
-        Log.d(LOG_TAG, "load()");
+        Log.d(TAG, "load()");
         mPlaylist = playList;
         mPlaylistIndex = playListIndex;
         mPlayerState = new PlayerState(getApplicationContext());
@@ -104,7 +106,7 @@ public class PlayService extends Service {
     }
 
     public void disconnect() {
-        Log.d(LOG_TAG, "disconnect()");
+        Log.d(TAG, "disconnect()");
         mSongChangeListener = null;
         mOnReceiveListener = null;
     }
@@ -144,13 +146,13 @@ public class PlayService extends Service {
     }
 
     public void play() {
-        Log.d(LOG_TAG, "play");
+        Log.d(TAG, "play");
 
         try {
             // current song
             final Song song = mPlaylist[mPlaylistIndex];
 
-            Log.d(LOG_TAG, "song to play: " + song.name);
+            Log.d(TAG, "song to play: " + song.name);
 
             // in the case that a song from a different artist is being played
             mMediaPlayer.reset();
@@ -173,7 +175,7 @@ public class PlayService extends Service {
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
-                    Log.d(LOG_TAG, "about to start the song");
+                    Log.d(TAG, "about to start the song");
                     mp.start();
                     mp.seekTo(0);
 
@@ -207,7 +209,7 @@ public class PlayService extends Service {
     }
 
     public boolean skipToNext() {
-        Log.d(LOG_TAG, "skipToNext");
+        Log.d(TAG, "skipToNext");
         stop();
         if (mPlaylistIndex < mPlaylist.length - 1) {
             mPlaylistIndex++;
@@ -218,7 +220,7 @@ public class PlayService extends Service {
     }
 
     public boolean skipToPrevious() {
-        Log.d(LOG_TAG, "skipToPrevious");
+        Log.d(TAG, "skipToPrevious");
         stop();
         if (mPlaylistIndex > 0) {
             mPlaylistIndex--;
@@ -237,7 +239,7 @@ public class PlayService extends Service {
     }
 
     public void pause() {
-        Log.d(LOG_TAG, "pause");
+        Log.d(TAG, "pause");
         mPlayerPlayState = PLAYER_STATE_PAUSED;
         mMediaPlayer.pause();
 
@@ -250,14 +252,14 @@ public class PlayService extends Service {
     }
 
     public void resume() {
-        Log.d(LOG_TAG, "resume");
+        Log.d(TAG, "resume");
         mPlayerPlayState = PLAYER_STATE_PLAYING;
         mMediaPlayer.start();
         showNotification();
     }
 
     public void stop() {
-        Log.d(LOG_TAG, "stop");
+        Log.d(TAG, "stop");
         mPlayerPlayState = PLAYER_STATE_STOPPED;
         mMediaPlayer.stop();
         mMediaPlayer.reset();
@@ -266,11 +268,19 @@ public class PlayService extends Service {
     public void showNotification() {
         // if the listeners are not null then the activity is active, so no notification is require
         if (mOnReceiveListener != null && mSongChangeListener != null) {
-            Log.d(LOG_TAG, "showNotification abort");
+            Log.d(TAG, "showNotification abort");
             return;
         }
 
-        Log.d(LOG_TAG, "showNotification");
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        boolean showNotification = sharedPref.getBoolean(SettingsActivity.KEY_PREF_SHOW_NOTIFICATIONS, true);
+
+        if (!showNotification) {
+            Log.d(TAG, "Notifcations are configured to not be shown");
+            return;
+        }
+
+        Log.d(TAG, "showNotification");
 
         Intent intent = new Intent(getApplicationContext(), SongPlayerActivity.class);
 

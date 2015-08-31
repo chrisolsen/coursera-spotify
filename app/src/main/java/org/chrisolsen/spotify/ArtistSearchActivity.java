@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -15,7 +16,7 @@ public class ArtistSearchActivity
         implements ArtistSearchActivityFragment.ArtistSelectionHandler,
         ArtistTopSongsActivityFragment.SongSelectHandler {
 
-    private final String LOG_TAG = this.getClass().getSimpleName();
+    private final String TAG = this.getClass().getSimpleName();
     private String mCurrentArtistId;
 
     @Override
@@ -37,9 +38,11 @@ public class ArtistSearchActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d(TAG, "onOptionsItemSelected ");
         switch(item.getItemId()) {
-            case R.menu.menu_main:
-
+            case R.id.menu_settings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
                 return true;
         }
         return false;
